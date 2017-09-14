@@ -34,22 +34,7 @@ static struct /*UbxGps*/ {
 	unsigned short headerLength;
 } UbxGpsv;
 
-/**
-*Extracts from  UBX GPS Library
-* Created by Danila Loginov, July 2, 2016
-* https://github.com/1oginov/UBX-GPS-Library
-*
-* Sketch, restoring the receiver's default configuration and configure it to get
-* NAV-PVT messages with 100 ms frequency and 115200 baudrate. After the auto-
-* configuration transmits the data from the receiver to the PC and vice versa.
-
-*
-* U-blox NEO-7M - Arduino Mega
-* VCC - 5V
-* RX - TX3
-* TX - RX3
-* GND - GND
-*/
+static struct UbxGpsNavPvt gps = {};
 
 // Default baudrate is determined by the receiver's manufacturer
 
@@ -364,7 +349,99 @@ void setupneo() {
 
 	printf("Auto-configuration is complete!\n\r");
 
-	fastdelay_ms(100); // Little delay before flushing
+	fastdelay_ms(25); // Little delay before flushing
 	while(1)
 		loop();
+}
+
+
+void calculateChecksum() {
+	memset(UbxGpsv.checksum, 0, 2);
+	for (int i = 0; i < UbxGpsv.size; i++) {
+		UbxGpsv.checksum[0] += ((unsigned char*)(UbxGpsv))[i + UbxGpsv.offsetClassProperties];
+		UbxGpsv.checksum[1] += UbxGpsv.checksum[0];
+	}
+}
+
+
+// reads a gps packet into 
+boolean gpsready() {
+	unsigned char p = UbxGpsv.carriagePosition;
+
+	while (USART_1_is_rx_ready()) {
+		byte c = USART_1_read();
+
+		// Carriage is at first or second sync byte, should be equals
+		if (p < 2) {
+			if (c == UBXGPS_HEADER[p]) {
+				p++;
+			}
+			// Reset if not
+			else {
+				p = 0;
+			}
+		}
+
+		// After successful sync with header
+		else {
+
+			// Put byte read to particular address of UbxGpsv object which depends on carriage position
+			if (p < (UbxGpsv.size + 2)) {
+				((unsigned char*)(UbxGpsv))[p - 2 + UbxGpsv.offsetClassProperties] = c;
+			}
+
+			// Move the carriage forward
+			p++;
+
+			// Carriage is at the first checksum byte, we can calculate our checksum, but not compare because UbxGpsv byte is not read
+			if (p == (UbxGpsv.size + 2)) {
+				UbxGpsv.calculateChecksum();
+			}
+
+			// Carriage is at the second checksum byte, but only the first byte of checksum read, check if it equals to ours
+			else if (p == (UbxGpsv.size + 3)) {
+				// Reset if not
+				if (c != UbxGpsv.checksum[0]) {
+					p = 0;
+				}
+			}
+
+			// Carriage is after the second checksum byte, which has been read, check if it equals to ours
+			else if (p == (UbxGpsv.size + 4)) {
+				// Reset the carriage
+				p = 0;
+
+				// The readings are correct and filled the object, return true
+				if (c == UbxGpsv.checksum[1]) {
+					UbxGpsv.carriagePosition = p;
+					return true;
+				}
+			}
+
+			// Reset the carriage if it is out of packet
+			else if (p > (UbxGpsv.size + 4)) {
+				p = 0;
+			}
+		}
+	}
+
+	UbxGpsv.carriagePosition = p;
+
+	return false;
+}
+
+
+// read gps output and print
+void rdgps() {
+	if (gpsready()) {
+		snprintf("datetime, DATETIME_LENGTH, DATETIME_FORMAT", gps.year, gps.month, gps.day, gps.hour, gps.min, gps.sec);
+		printf(datetime); printf(',');
+		printf(gps.lon / 10000000.0, 7); printf(',');
+		printf(gps.lat / 10000000.0, 7); printf(',');
+		printf(gps.height / 1000.0, 3); printf(',');
+		printf(gps.gSpeed * 0.0036, 5); printf(',');
+		printf(gps.heading / 100000.0, 5); printf(','); printf(gps.fixType); printf(',');
+		printf(gps.numSV);
+		printf("\n\r");
+	}
 }
