@@ -15,9 +15,27 @@
 #include "usart_basic.h"
 #include <stdio.h>
 
+typedef uint8_t byte;
+
+#define PC_SERIAL   Serial
+#define PC_BAUDRATE 9600L
+#define printgps  Serial3
+
+static struct /*UbxGps*/ {
+	unsigned char offsetClassProperties : 8;
+	unsigned char offsetHeaders : 4;
+	unsigned char size;
+	unsigned char carriagePosition;
+	unsigned char checksum[2];
+
+	// Headers (common)
+	unsigned char headerClass;
+	unsigned char headerId;
+	unsigned short headerLength;
+} UbxGpsv;
 
 /**
-* UBX GPS Library
+*Extracts from  UBX GPS Library
 * Created by Danila Loginov, July 2, 2016
 * https://github.com/1oginov/UBX-GPS-Library
 *
@@ -32,12 +50,6 @@
 * TX - RX3
 * GND - GND
 */
-
-typedef uint8_t byte;
-
-#define PC_SERIAL   Serial
-#define PC_BAUDRATE 9600L
-#define printgps  Serial3
 
 // Default baudrate is determined by the receiver's manufacturer
 
@@ -308,9 +320,11 @@ void enableNavPvt() {
 
 // If there is data from the receiver, read it and send to the PC or vice versa
 void loop() {
+unsigned char data;
 
 	if (USART_1_is_rx_ready()) {
-		USART_3_write(USART_1_read());
+		data = USART_1_read();
+		printPacket(&data, 1);
 	}
 	if (USART_3_is_rx_ready()) {
 		USART_1_write(USART_3_read());
