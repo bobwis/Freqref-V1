@@ -8,3 +8,4 @@ Freqref\Debug\
 *.o
 *.elf
 *.o
+.vs\
