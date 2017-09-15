@@ -15,17 +15,20 @@
 #include "usart_basic.h"
 #include <string.h>
 #include <stdio.h>
+#include <neo7m.h>
 
 typedef uint8_t byte;
 
 #define PC_SERIAL   Serial
 #define PC_BAUDRATE 9600L
 
+static const unsigned char UBXGPS_HEADER[] = { 0xB5, 0x62, 0x01,0x07 };
 
+unsigned char PACKETstore[92];  //TODO, whats the max size of packet?
 
-static const unsigned char UBXGPS_HEADER[] = { 0xB5, 0x62 };
+ 
 
-unsigned char PACKETstore[1000];  //TODO, whats the max size of packet?
+unsigned char lastGoodPacket [92]; 
 int IsPacketReady(unsigned char c);  
 
 static struct /*UbxGps*/ {
@@ -78,11 +81,17 @@ void printPacket(byte *packet, byte len) {
 	char temp[3];
 
 	for (byte i = 0; i < len; i++) {
+		if(i%16==0)
+		{
+			printf("\n\r");
+		}
+		else
+		{
+			printf(" "); 
+		}
 		sprintf(temp, "%.2X", packet[i]);
 		printf(temp);
-		if (i != len - 1) {
-			printf(" ");
-		}
+
 	}
 	printf("\n\r");
 }
@@ -298,19 +307,30 @@ void enableNavPvt() {
 }
 
 
+
 // If there is data from the receiver, read it and send to the PC or vice versa
 void loop() 
 {
+	const unsigned char offset =6;
 	unsigned char data;
 	if (USART_1_is_rx_ready()) 
 	{
 		data = USART_1_read();
+	 	//USART_3_write(data);
+		
+		
+
 		if(IsPacketReady(data))
 		{
-			printf("Received a complete packet from GPS unit");
+		//	printf("Packet ready\r\n");
+		//	printPacket(PACKETstore,92);
+			for(unsigned int i = offset; i<sizeof(realPacket); i++){
+			    *((char*)(&realPacket) + (i-offset)) = PACKETstore[i];
+			}
+			printf("Date  %d %d %d  ", realPacket.day, realPacket.month,  realPacket.year);
+			printf("Time %d:%d:%d  UTC     Epoch  %lu\r\n", realPacket.hour, realPacket.min,  realPacket.sec,realPacket.iTOW);
+
 		}
-		//printf("%x-\r\n",data);
-		//printPacket(&data, 1);
 	}
 	if (USART_3_is_rx_ready()) 
 	{
@@ -334,13 +354,13 @@ int IsPacketReady(unsigned char c)
 {   
    // get current position in packet
    unsigned char p = UbxGpsv.carriagePosition; 
-   if (p < 2)    
+   if (p < 2)     // this should only care about PVT messages
    {		
-		//printf("starting a packet");
 		// are we starting a packet?
 		if (c == UBXGPS_HEADER[p]) 
 		{
-			p++; 
+			PACKETstore[p] = c;
+			p++; 			
 		} 
 		else 
 		{ 
@@ -349,13 +369,27 @@ int IsPacketReady(unsigned char c)
    }
    // found a packet header, start filling
    else 
+   
    {
-		printf("-a*\r\n");
+		//if we are here, we've got some of the right packet.  Lets just try getting all 86 bytes
+		if(p <93)
+		{
+			PACKETstore[p] = c;
+			p++;
+		 
+		}
+		else
+		{
+			p=0;
+			UbxGpsv.carriagePosition =p;
+			return true;
+		}
+	}	
+/*	
 		// Put byte read to particular address of this object which depends on carriage position
 		if (p < (UbxGpsv.size + 2)) 
 		{
 			PACKETstore[p - 2 + UbxGpsv.offsetClassProperties] = c;
-			printf("-b*");
 		}
 		// Move the carriage forward
 		p++;
@@ -399,16 +433,16 @@ int IsPacketReady(unsigned char c)
 		printf("Out of packet*\r\n");
      }
     }
-	 
-    UbxGpsv.carriagePosition = p;
-	return 0;
+*/	 
+	UbxGpsv.carriagePosition =p;
+	return false;
 }
 void setupneo() 
 {
 	
 	// Disabling NMEA messages by sending appropriate packets
 	printf("Disabling NMEA messages...\n\r");
-//	disableNmea();
+	disableNmea();
 
 	// Switching receiver's serial to the wanted baudrate
 	if (GPS_WANTED_BAUDRATE != GPS_DEFAULT_BAUDRATE) {
@@ -427,7 +461,7 @@ void setupneo()
 
 	// Disabling unnecessary channels like SBAS or QZSS
 	printf("Disabling unnecessary channels...\r\n");
-	//disableUnnecessaryChannels();
+	disableUnnecessaryChannels();
 
 	// Enabling NAV-PVT messages
 	printf("Enabling NAV-PVT messages...\n\r");
