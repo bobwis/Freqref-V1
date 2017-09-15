@@ -1,6 +1,7 @@
 #include <atmel_start.h>
 #include "timeutils.h"
 #include "neo7m.h"
+#include "nextion.h"
 #include <stdio.h>
 
 
@@ -16,8 +17,11 @@ int main(void)
 
 	fastdelay_ms(5000/4);
 
-//	setupneo();
+#if 0
+	setupneo();
 	printf("Neo7 setup returned\n\r");
+#endif
+
 	while(1)
 	{
 		decodelcd();		// lcd test and debug

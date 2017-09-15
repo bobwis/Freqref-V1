@@ -10,7 +10,7 @@
 #define NEXTION_H_
 
 
-
+void decodelcd(void);
 
 
 #endif /* NEXTION_H_ */

@@ -1,5 +1,5 @@
-main.d main.o: .././main.c ../atmel_start.h ../include/driver_init.h \
- ../utils/compiler.h \
+nextion.d nextion.o: .././nextion.c .././timeutils.h ../atmel_start.h \
+ ../include/driver_init.h ../utils/compiler.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\io.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\sfr_defs.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\inttypes.h \
@@ -27,10 +27,11 @@ main.d main.o: .././main.c ../atmel_start.h ../include/driver_init.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\lib\gcc\avr\5.4.0\include-fixed\limits.h \
  ../utils/atomic.h ../include/spi_basic.h ../include/tc16.h \
- ../include/usart_basic.h ../include/atmel_start_pins.h .././timeutils.h \
- .././neo7m.h .././nextion.h \
+ ../include/usart_basic.h ../include/atmel_start_pins.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\stdio.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\lib\gcc\avr\5.4.0\include\stdarg.h
+
+.././timeutils.h:
 
 ../atmel_start.h:
 
@@ -105,12 +106,6 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\lib\
 ../include/usart_basic.h:
 
 ../include/atmel_start_pins.h:
-
-.././timeutils.h:
-
-.././neo7m.h:
-
-.././nextion.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\stdio.h:
 
