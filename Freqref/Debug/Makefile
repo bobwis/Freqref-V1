@@ -50,6 +50,7 @@ C_SRCS +=  \
 ../examples/src/spi_basic_example.c \
 ../examples/src/usart_basic_example.c \
 ../neo7m.c \
+../nextion.c \
 ../src/driver_init.c \
 ../src/nvmctrl_basic.c \
 ../src/spi_basic.c \
@@ -73,6 +74,7 @@ examples/src/nvmctrl_basic_example.o \
 examples/src/spi_basic_example.o \
 examples/src/usart_basic_example.o \
 neo7m.o \
+nextion.o \
 src/driver_init.o \
 src/nvmctrl_basic.o \
 src/protected_io.o \
@@ -89,6 +91,7 @@ examples/src/nvmctrl_basic_example.o \
 examples/src/spi_basic_example.o \
 examples/src/usart_basic_example.o \
 neo7m.o \
+nextion.o \
 src/driver_init.o \
 src/nvmctrl_basic.o \
 src/protected_io.o \
@@ -105,6 +108,7 @@ examples/src/nvmctrl_basic_example.d \
 examples/src/spi_basic_example.d \
 examples/src/usart_basic_example.d \
 neo7m.d \
+nextion.d \
 src/driver_init.d \
 src/nvmctrl_basic.d \
 src/protected_io.d \
@@ -121,6 +125,7 @@ examples/src/nvmctrl_basic_example.d \
 examples/src/spi_basic_example.d \
 examples/src/usart_basic_example.d \
 neo7m.d \
+nextion.d \
 src/driver_init.d \
 src/nvmctrl_basic.d \
 src/protected_io.d \
@@ -145,6 +150,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

@@ -16,11 +16,11 @@ int main(void)
 
 	fastdelay_ms(5000/4);
 
-	setupneo();
-	printf("Neo7 setup returnedd\n\r");
+//	setupneo();
+	printf("Neo7 setup returned\n\r");
 	while(1)
 	{
-		rdgps();
+		decodelcd();		// lcd test and debug
 	}
 
 	printf("Goodbye World\n\r");
