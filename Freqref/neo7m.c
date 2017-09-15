@@ -338,11 +338,13 @@ void loop()
 		if(IsPacketReady(data))
 		{
 		//	printf("Packet ready\r\n");
-			printPacket(PACKETstore,92);
+		//	printPacket(PACKETstore,92);
 			for(unsigned int i = offset; i<sizeof(realPacket); i++){
 			    *((char*)(&realPacket) + (i-offset)) = PACKETstore[i];
 			}
 			printf("Date  %d %d %d  ", realPacket.day, realPacket.month,  realPacket.year);
+			printf("Time %d:%d:%d  UTC     Epoch  %lu\r\n", realPacket.hour, realPacket.min,  realPacket.sec,realPacket.iTOW);
+
 		}
 	}
 	if (USART_3_is_rx_ready()) 
