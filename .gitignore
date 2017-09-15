@@ -1,4 +1,4 @@
-
+Freqref\Debug\
 *.elf
 *.hex
 *.lss
@@ -8,3 +8,4 @@
 *.o
 *.elf
 *.o
+.vs\
