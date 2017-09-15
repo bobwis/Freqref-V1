@@ -13,13 +13,20 @@
 #include <atmel_start.h>
 #include "timeutils.h"
 #include "usart_basic.h"
+#include <string.h>
 #include <stdio.h>
 
 typedef uint8_t byte;
 
 #define PC_SERIAL   Serial
 #define PC_BAUDRATE 9600L
-#define printgps  Serial3
+
+
+
+static const unsigned char UBXGPS_HEADER[] = { 0xB5, 0x62 };
+
+unsigned char PACKETstore[1000];  //TODO, whats the max size of packet?
+int IsPacketReady(unsigned char c);  
 
 static struct /*UbxGps*/ {
 	unsigned char offsetClassProperties : 8;
@@ -79,16 +86,6 @@ const long possibleBaudrates[] = {
 	//4800L,
 };
 
-void printgps(unsigned char string[])
-{
-	int i = 0;
-	uint8_t data;
-
-	while((data = string[i++]))
-	{
-		USART_1_write(data);
-	}
-}
 
 
 // Function, printing packet to the PC's serial in hexadecimal form
@@ -316,28 +313,117 @@ void enableNavPvt() {
 }
 
 
-
-
 // If there is data from the receiver, read it and send to the PC or vice versa
-void loop() {
-unsigned char data;
-
-	if (USART_1_is_rx_ready()) {
+void loop() 
+{
+	unsigned char data;
+	if (USART_1_is_rx_ready()) 
+	{
 		data = USART_1_read();
-		printPacket(&data, 1);
+		if(IsPacketReady(data))
+		{
+			printf("Received a complete packet from GPS unit");
+		}
+		//printf("%x-\r\n",data);
+		//printPacket(&data, 1);
 	}
-	if (USART_3_is_rx_ready()) {
+	if (USART_3_is_rx_ready()) 
+	{
 		USART_1_write(USART_3_read());
-
 	}
-
 }
 
-void setupneo() {
+
+void calculateChecksum()
+{
+	memset(UbxGpsv.checksum, 0, 2);
+    for (int i = 0; i < UbxGpsv.size; i++) 
+	{
+        UbxGpsv.checksum[0] += PACKETstore[i + UbxGpsv.offsetClassProperties];
+        UbxGpsv.checksum[1] += UbxGpsv.checksum[0];
+    }
+}
+
+// start/complete filling in the current packet
+int IsPacketReady(unsigned char c)  
+{   
+   // get current position in packet
+   unsigned char p = UbxGpsv.carriagePosition; 
+   if (p < 2)    
+   {		
+		//printf("starting a packet");
+		// are we starting a packet?
+		if (c == UBXGPS_HEADER[p]) 
+		{
+			p++; 
+		} 
+		else 
+		{ 
+			p = 0;
+		}         
+   }
+   // found a packet header, start filling
+   else 
+   {
+		printf("-a*\r\n");
+		// Put byte read to particular address of this object which depends on carriage position
+		if (p < (UbxGpsv.size + 2)) 
+		{
+			PACKETstore[p - 2 + UbxGpsv.offsetClassProperties] = c;
+			printf("-b*");
+		}
+		// Move the carriage forward
+		p++;
+
+		// Carriage is at the first checksum byte, we can calculate our checksum, but not compare because this byte is not read
+		if (p == (UbxGpsv.size + 2)) 
+		{
+			printf("-c*");
+			calculateChecksum();
+			printf("-d*");
+		}
+		// Carriage is at the second checksum byte, but only the first byte of checksum read, check if it equals to ours
+		else if (p == (UbxGpsv.size + 3)) 
+		{
+			// Reset if not
+			if (c != UbxGpsv.checksum[0]) 
+			{
+	//			p = 0;   //ignore the checksum for testing
+			//	printf("Got %d when expecting %d\r\n",c,UbxGpsv.checksum[0]);
+			}
+		}
+
+		// Carriage is after the second checksum byte, which has been read, check if it equals to ours
+		else if (p == (UbxGpsv.size + 4)) 
+		{
+			// Reset the carriage
+        p = 0;
+		// The readings are correct and filled the object, return true
+        if (c == UbxGpsv.checksum[1]) 
+		{
+			UbxGpsv.carriagePosition = p;
+			printf("-f*");
+            return 1;
+        }
+     }
+
+     // Reset the carriage if it is out of packet
+     else if (p > (UbxGpsv.size + 4)) 
+	 {
+		p = 0;
+		printf("Out of packet*\r\n");
+     }
+    }
+	 
+    UbxGpsv.carriagePosition = p;
+	return 0;
+}
+void setupneo() 
+{
 	
 	// Disabling NMEA messages by sending appropriate packets
 	printf("Disabling NMEA messages...\n\r");
-	disableNmea();
+//	disableNmea();
 
 	// Switching receiver's serial to the wanted baudrate
 	if (GPS_WANTED_BAUDRATE != GPS_DEFAULT_BAUDRATE) {
@@ -356,7 +442,7 @@ void setupneo() {
 
 	// Disabling unnecessary channels like SBAS or QZSS
 	printf("Disabling unnecessary channels...\r\n");
-	disableUnnecessaryChannels();
+	//disableUnnecessaryChannels();
 
 	// Enabling NAV-PVT messages
 	printf("Enabling NAV-PVT messages...\n\r");
@@ -366,5 +452,9 @@ void setupneo() {
 
 	fastdelay_ms(100); // Little delay before flushing
 	while(1)
+	{
+
 		loop();
+		//printf("finished loop");
+		}
 }
