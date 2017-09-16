@@ -55,6 +55,10 @@ struct UbxGpsNavPvt {
 } realPacket; 
 
 
+// set up the newo7 as we want it
 extern void setupneo(void);
+
+// Update RealPacket
+extern void updategps(void);
 
 #endif /* NEO7M_H_ */

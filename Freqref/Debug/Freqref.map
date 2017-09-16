@@ -118,51 +118,21 @@ Discarded input sections
  .text          0x00000000        0x0 neo7m.o
  .data          0x00000000        0x0 neo7m.o
  .bss           0x00000000        0x0 neo7m.o
- .rodata.str1.1
-                0x00000000       0xea neo7m.o
- .text.printPacket
-                0x00000000       0xc2 neo7m.o
- .text.sendPacket
-                0x00000000       0x4a neo7m.o
- .rodata        0x00000000       0xa9 neo7m.o
  .text.restoreDefaults
                 0x00000000       0x42 neo7m.o
- .text.disableNmea
-                0x00000000       0xb6 neo7m.o
  .text.changeBaudrate
-                0x00000000       0x42 neo7m.o
- .text.changeFrequency
-                0x00000000       0x42 neo7m.o
- .text.disableUnnecessaryChannels
-                0x00000000       0x42 neo7m.o
- .text.enableNavPvt
                 0x00000000       0x42 neo7m.o
  .text.calculateChecksum
                 0x00000000       0x40 neo7m.o
- .text.IsPacketReady
-                0x00000000       0x4c neo7m.o
- .text.loop     0x00000000       0xa8 neo7m.o
- .text.setupneo
-                0x00000000       0x66 neo7m.o
  .rodata.possibleBaudrates
                 0x00000000        0x8 neo7m.o
- .bss.UbxGpsv   0x00000000        0xa neo7m.o
- .rodata.UBXGPS_HEADER
-                0x00000000        0x4 neo7m.o
- .debug_info    0x00000000      0x8cd neo7m.o
- .debug_abbrev  0x00000000      0x27c neo7m.o
- .debug_loc     0x00000000      0x788 neo7m.o
- .debug_aranges
-                0x00000000       0x78 neo7m.o
- .debug_ranges  0x00000000       0x68 neo7m.o
- .debug_line    0x00000000      0x3e3 neo7m.o
- .debug_str     0x00000000      0x437 neo7m.o
- .comment       0x00000000       0x31 neo7m.o
- .debug_frame   0x00000000      0x224 neo7m.o
- COMMON         0x00000000      0x10c neo7m.o
  .text          0x00000000        0x0 nextion.o
  .data          0x00000000        0x0 nextion.o
  .bss           0x00000000        0x0 nextion.o
+ .text.getlcdpkt
+                0x00000000       0xa4 nextion.o
+ .text.decodelcd
+                0x00000000       0xbc nextion.o
  .text          0x00000000        0x0 src/driver_init.o
  .data          0x00000000        0x0 src/driver_init.o
  .bss           0x00000000        0x0 src/driver_init.o
@@ -253,14 +223,8 @@ Discarded input sections
                 0x00000000        0xc src/usart_basic.o
  .text.USART_1_is_tx_ready
                 0x00000000        0xe src/usart_basic.o
- .text.USART_1_is_rx_ready
-                0x00000000        0xe src/usart_basic.o
  .text.USART_1_is_tx_busy
                 0x00000000       0x10 src/usart_basic.o
- .text.USART_1_read
-                0x00000000       0x32 src/usart_basic.o
- .text.USART_1_write
-                0x00000000       0x3e src/usart_basic.o
  .text.USART_1_enable
                 0x00000000        0xc src/usart_basic.o
  .text.USART_1_enable_rx
@@ -271,10 +235,12 @@ Discarded input sections
                 0x00000000        0xc src/usart_basic.o
  .text.USART_2_is_tx_ready
                 0x00000000        0xe src/usart_basic.o
+ .text.USART_2_is_rx_ready
+                0x00000000        0xe src/usart_basic.o
  .text.USART_2_is_tx_busy
                 0x00000000       0x10 src/usart_basic.o
- .text.USART_2_write
-                0x00000000       0x3e src/usart_basic.o
+ .text.USART_2_read
+                0x00000000       0x32 src/usart_basic.o
  .text.USART_2_enable
                 0x00000000        0xc src/usart_basic.o
  .text.USART_2_enable_rx
@@ -285,12 +251,8 @@ Discarded input sections
                 0x00000000        0xc src/usart_basic.o
  .text.USART_3_is_tx_ready
                 0x00000000        0xe src/usart_basic.o
- .text.USART_3_is_rx_ready
-                0x00000000        0xe src/usart_basic.o
  .text.USART_3_is_tx_busy
                 0x00000000       0x10 src/usart_basic.o
- .text.USART_3_read
-                0x00000000       0x32 src/usart_basic.o
  .text.USART_3_enable
                 0x00000000        0xc src/usart_basic.o
  .text.USART_3_enable_rx
@@ -426,21 +388,12 @@ Discarded input sections
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(putchar.o)
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(putchar.o)
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(putchar.o)
- .text.avr-libc
-                0x00000000        0xc c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(putchar.o)
- .comment       0x00000000       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(putchar.o)
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(puts.o)
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(puts.o)
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(puts.o)
- .text.avr-libc
-                0x00000000       0x60 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(puts.o)
- .comment       0x00000000       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(puts.o)
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(sprintf.o)
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(sprintf.o)
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(sprintf.o)
- .text.avr-libc
-                0x00000000       0x5e c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(sprintf.o)
- .comment       0x00000000       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(sprintf.o)
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(vfprintf_std.o)
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(vfprintf_std.o)
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(vfprintf_std.o)
@@ -595,7 +548,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000     0x1138
+.text           0x00000000     0x15f2
  *(.vectors)
  .vectors       0x00000000       0xe4 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.132/gcc/dev/atmega2560/avr6/crtatmega2560.o
                 0x00000000                __vector_default
@@ -704,138 +657,184 @@ END GROUP
  .text.atmel_start_init
                 0x00000126        0x4 atmel_start.o
                 0x00000126                atmel_start_init
- .text.getlcdpkt
-                0x0000012a       0x9a nextion.o
-                0x0000012a                getlcdpkt
- .text.decodelcd
-                0x000001c4       0xea nextion.o
-                0x000001c4                decodelcd
+ .text.printPacket
+                0x0000012a       0xb8 neo7m.o
+                0x0000012a                printPacket
+ .text.sendPacket
+                0x000001e2       0x46 neo7m.o
+                0x000001e2                sendPacket
+ .text.disableNmea
+                0x00000228       0xb4 neo7m.o
+                0x00000228                disableNmea
+ .text.changeFrequency
+                0x000002dc       0x40 neo7m.o
+                0x000002dc                changeFrequency
+ .text.disableUnnecessaryChannels
+                0x0000031c       0x40 neo7m.o
+                0x0000031c                disableUnnecessaryChannels
+ .text.enableNavPvt
+                0x0000035c       0x40 neo7m.o
+                0x0000035c                enableNavPvt
+ .text.IsPacketReady
+                0x0000039c       0x4c neo7m.o
+                0x0000039c                IsPacketReady
+ .text.loop     0x000003e8       0x98 neo7m.o
+                0x000003e8                loop
+ .text.updategps
+                0x00000480        0x4 neo7m.o
+                0x00000480                updategps
+ .text.setupneo
+                0x00000484       0x4e neo7m.o
+                0x00000484                setupneo
+ .text.setndig  0x000004d2       0x6a nextion.o
+                0x000004d2                setndig
  .text.SPI_0_initialization
-                0x000002ae       0x14 src/driver_init.o
-                0x000002ae                SPI_0_initialization
+                0x0000053c       0x14 src/driver_init.o
+                0x0000053c                SPI_0_initialization
  .text.USART_0_initialization
-                0x000002c2        0xc src/driver_init.o
-                0x000002c2                USART_0_initialization
+                0x00000550        0xc src/driver_init.o
+                0x00000550                USART_0_initialization
  .text.USART_1_initialization
-                0x000002ce        0xc src/driver_init.o
-                0x000002ce                USART_1_initialization
+                0x0000055c        0xc src/driver_init.o
+                0x0000055c                USART_1_initialization
  .text.USART_2_initialization
-                0x000002da       0x24 src/driver_init.o
-                0x000002da                USART_2_initialization
+                0x00000568       0x24 src/driver_init.o
+                0x00000568                USART_2_initialization
  .text.USART_3_initialization
-                0x000002fe       0x24 src/driver_init.o
-                0x000002fe                USART_3_initialization
+                0x0000058c       0x24 src/driver_init.o
+                0x0000058c                USART_3_initialization
  .text.system_init
-                0x00000322      0x106 src/driver_init.o
-                0x00000322                system_init
+                0x000005b0      0x106 src/driver_init.o
+                0x000005b0                system_init
  .text.__vector_30
-                0x00000428       0xa0 src/nvmctrl_basic.o
-                0x00000428                __vector_30
+                0x000006b6       0xa0 src/nvmctrl_basic.o
+                0x000006b6                __vector_30
  .text.FLASH_0_init
-                0x000004c8        0xc src/nvmctrl_basic.o
-                0x000004c8                FLASH_0_init
+                0x00000756        0xc src/nvmctrl_basic.o
+                0x00000756                FLASH_0_init
  .text.protected_write_io
-                0x000004d4       0x10 src/protected_io.o
-                0x000004d4                protected_write_io
+                0x00000762       0x10 src/protected_io.o
+                0x00000762                protected_write_io
  .text.SPI_0_init
-                0x000004e4       0x1a src/spi_basic.o
-                0x000004e4                SPI_0_init
+                0x00000772       0x1a src/spi_basic.o
+                0x00000772                SPI_0_init
  .text.__vector_24
-                0x000004fe       0xb4 src/spi_basic.o
-                0x000004fe                __vector_24
+                0x0000078c       0xb4 src/spi_basic.o
+                0x0000078c                __vector_24
  .text.TIMER_0_init
-                0x000005b2       0x1a src/tc16.o
-                0x000005b2                TIMER_0_init
+                0x00000840       0x1a src/tc16.o
+                0x00000840                TIMER_0_init
  .text.TIMER_1_init
-                0x000005cc       0x26 src/tc16.o
-                0x000005cc                TIMER_1_init
+                0x0000085a       0x26 src/tc16.o
+                0x0000085a                TIMER_1_init
  .text.__vector_25
-                0x000005f2       0x50 src/usart_basic.o
-                0x000005f2                __vector_25
+                0x00000880       0x50 src/usart_basic.o
+                0x00000880                __vector_25
  .text.__vector_26
-                0x00000642       0x64 src/usart_basic.o
-                0x00000642                __vector_26
+                0x000008d0       0x64 src/usart_basic.o
+                0x000008d0                __vector_26
  .text.USART_0_init
-                0x000006a6       0x3a src/usart_basic.o
-                0x000006a6                USART_0_init
+                0x00000934       0x3a src/usart_basic.o
+                0x00000934                USART_0_init
  .text.__vector_36
-                0x000006e0       0x52 src/usart_basic.o
-                0x000006e0                __vector_36
+                0x0000096e       0x52 src/usart_basic.o
+                0x0000096e                __vector_36
  .text.__vector_37
-                0x00000732       0x64 src/usart_basic.o
-                0x00000732                __vector_37
+                0x000009c0       0x64 src/usart_basic.o
+                0x000009c0                __vector_37
+ .text.USART_1_is_rx_ready
+                0x00000a24        0xe src/usart_basic.o
+                0x00000a24                USART_1_is_rx_ready
+ .text.USART_1_read
+                0x00000a32       0x32 src/usart_basic.o
+                0x00000a32                USART_1_read
+ .text.USART_1_write
+                0x00000a64       0x3e src/usart_basic.o
+                0x00000a64                USART_1_write
  .text.USART_1_init
-                0x00000796       0x3a src/usart_basic.o
-                0x00000796                USART_1_init
+                0x00000aa2       0x3a src/usart_basic.o
+                0x00000aa2                USART_1_init
  .text.__vector_51
-                0x000007d0       0x52 src/usart_basic.o
-                0x000007d0                __vector_51
+                0x00000adc       0x52 src/usart_basic.o
+                0x00000adc                __vector_51
  .text.__vector_52
-                0x00000822       0x64 src/usart_basic.o
-                0x00000822                __vector_52
- .text.USART_2_is_rx_ready
-                0x00000886        0xe src/usart_basic.o
-                0x00000886                USART_2_is_rx_ready
- .text.USART_2_read
-                0x00000894       0x32 src/usart_basic.o
-                0x00000894                USART_2_read
+                0x00000b2e       0x64 src/usart_basic.o
+                0x00000b2e                __vector_52
+ .text.USART_2_write
+                0x00000b92       0x3e src/usart_basic.o
+                0x00000b92                USART_2_write
  .text.USART_2_init
-                0x000008c6       0x3a src/usart_basic.o
-                0x000008c6                USART_2_init
+                0x00000bd0       0x3a src/usart_basic.o
+                0x00000bd0                USART_2_init
  .text.__vector_54
-                0x00000900       0x52 src/usart_basic.o
-                0x00000900                __vector_54
+                0x00000c0a       0x52 src/usart_basic.o
+                0x00000c0a                __vector_54
  .text.__vector_55
-                0x00000952       0x64 src/usart_basic.o
-                0x00000952                __vector_55
+                0x00000c5c       0x64 src/usart_basic.o
+                0x00000c5c                __vector_55
+ .text.USART_3_is_rx_ready
+                0x00000cc0        0xe src/usart_basic.o
+                0x00000cc0                USART_3_is_rx_ready
+ .text.USART_3_read
+                0x00000cce       0x32 src/usart_basic.o
+                0x00000cce                USART_3_read
  .text.USART_3_write
-                0x000009b6       0x3e src/usart_basic.o
-                0x000009b6                USART_3_write
+                0x00000d00       0x3e src/usart_basic.o
+                0x00000d00                USART_3_write
  .text.USART_3_printCHAR
-                0x000009f4        0x8 src/usart_basic.o
-                0x000009f4                USART_3_printCHAR
+                0x00000d3e        0x8 src/usart_basic.o
+                0x00000d3e                USART_3_printCHAR
  .text.USART_3_init
-                0x000009fc       0x46 src/usart_basic.o
-                0x000009fc                USART_3_init
+                0x00000d46       0x46 src/usart_basic.o
+                0x00000d46                USART_3_init
  .text.fastmsectime
-                0x00000a42       0x14 timeutils.o
-                0x00000a42                fastmsectime
+                0x00000d8c       0x14 timeutils.o
+                0x00000d8c                fastmsectime
  .text.fastdelay_ms
-                0x00000a56       0x60 timeutils.o
-                0x00000a56                fastdelay_ms
+                0x00000da0       0x60 timeutils.o
+                0x00000da0                fastdelay_ms
  .text.__vector_42
-                0x00000ab6       0x2e driver_isr.o
-                0x00000ab6                __vector_42
+                0x00000e00       0x2e driver_isr.o
+                0x00000e00                __vector_42
  .text.__vector_47
-                0x00000ae4       0x9c driver_isr.o
-                0x00000ae4                __vector_47
- .text.main     0x00000b80       0x1c main.o
-                0x00000b80                main
- .text.libgcc   0x00000b9c       0x18 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr6\libgcc.a(_adddi3_s8.o)
-                0x00000b9c                __adddi3_s8
+                0x00000e2e       0x9c driver_isr.o
+                0x00000e2e                __vector_47
+ .text.main     0x00000eca       0xc6 main.o
+                0x00000eca                main
+ .text.libgcc   0x00000f90       0x18 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr6\libgcc.a(_adddi3_s8.o)
+                0x00000f90                __adddi3_s8
  .text.avr-libc
-                0x00000bb4       0x26 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(printf.o)
-                0x00000bb4                printf
+                0x00000fa8       0x26 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(printf.o)
+                0x00000fa8                printf
  .text.avr-libc
-                0x00000bda      0x3fa c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(vfprintf_std.o)
-                0x00000bda                vfprintf
+                0x00000fce        0xa c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(putchar.o)
+                0x00000fce                putchar
  .text.avr-libc
-                0x00000fd4       0x16 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(strnlen_P.o)
-                0x00000fd4                strnlen_P
+                0x00000fd8       0x60 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(puts.o)
+                0x00000fd8                puts
  .text.avr-libc
-                0x00000fea       0x16 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(strnlen.o)
-                0x00000fea                strnlen
+                0x00001038       0x5c c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(sprintf.o)
+                0x00001038                sprintf
  .text.avr-libc
-                0x00001000       0x78 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(fputc.o)
-                0x00001000                fputc
+                0x00001094      0x3fa c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(vfprintf_std.o)
+                0x00001094                vfprintf
  .text.avr-libc
-                0x00001078       0xbc c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(ultoa_invert.o)
-                0x00001078                __ultoa_invert
-                0x00001134                . = ALIGN (0x2)
+                0x0000148e       0x16 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(strnlen_P.o)
+                0x0000148e                strnlen_P
+ .text.avr-libc
+                0x000014a4       0x16 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(strnlen.o)
+                0x000014a4                strnlen
+ .text.avr-libc
+                0x000014ba       0x78 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(fputc.o)
+                0x000014ba                fputc
+ .text.avr-libc
+                0x00001532       0xbc c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(ultoa_invert.o)
+                0x00001532                __ultoa_invert
+                0x000015ee                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x00001134        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr6\libgcc.a(_exit.o)
-                0x00001134                _exit
-                0x00001134                exit
+ .fini9         0x000015ee        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr6\libgcc.a(_exit.o)
+                0x000015ee                _exit
+                0x000015ee                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -854,11 +853,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x00001134        0x4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr6\libgcc.a(_exit.o)
+ .fini0         0x000015ee        0x4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr6\libgcc.a(_exit.o)
  *(.fini0)
-                0x00001138                _etext = .
+                0x000015f2                _etext = .
 
-.data           0x00800200       0x42 load address 0x00001138
+.data           0x00800200      0x1e8 load address 0x000015f2
                 0x00800200                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -866,109 +865,120 @@ END GROUP
                 0x00800200        0xe src/usart_basic.o
                 0x00800200                USART_3_stream
  *(.rodata)
+ .rodata        0x0080020e       0xa9 neo7m.o
  *(.rodata*)
  .rodata.str1.1
-                0x0080020e       0x26 nextion.o
-                                 0x29 (size before relaxing)
+                0x008002b7       0xe7 neo7m.o
+                                 0xea (size before relaxing)
+ .rodata.UBXGPS_HEADER
+                0x0080039e        0x4 neo7m.o
  .rodata.str1.1
-                0x00800234        0xe main.o
+                0x008003a2       0x16 nextion.o
+                                 0x19 (size before relaxing)
+ .rodata.str1.1
+                0x008003b8       0x30 main.o
  *(.gnu.linkonce.d*)
-                0x00800242                . = ALIGN (0x2)
-                0x00800242                _edata = .
-                0x00800242                PROVIDE (__data_end, .)
+                0x008003e8                . = ALIGN (0x2)
+                0x008003e8                _edata = .
+                0x008003e8                PROVIDE (__data_end, .)
 
-.bss            0x00800242      0x1b9
-                0x00800242                PROVIDE (__bss_start, .)
+.bss            0x008003e8      0x33f
+                0x008003e8                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
+ .bss.UbxGpsv   0x008003e8        0xa neo7m.o
  .bss.FLASH_0_desc
-                0x00800242        0x8 src/nvmctrl_basic.o
+                0x008003f2        0x8 src/nvmctrl_basic.o
  .bss.SPI_0_desc
-                0x0080024a        0x7 src/spi_basic.o
+                0x008003fa        0x7 src/spi_basic.o
  .bss.USART_3_tx_elements
-                0x00800251        0x1 src/usart_basic.o
+                0x00800401        0x1 src/usart_basic.o
  .bss.USART_3_tx_tail
-                0x00800252        0x1 src/usart_basic.o
+                0x00800402        0x1 src/usart_basic.o
  .bss.USART_3_tx_head
-                0x00800253        0x1 src/usart_basic.o
+                0x00800403        0x1 src/usart_basic.o
  .bss.USART_3_txbuf
-                0x00800254       0x10 src/usart_basic.o
+                0x00800404       0x10 src/usart_basic.o
  .bss.USART_3_rx_elements
-                0x00800264        0x1 src/usart_basic.o
+                0x00800414        0x1 src/usart_basic.o
  .bss.USART_3_rx_tail
-                0x00800265        0x1 src/usart_basic.o
+                0x00800415        0x1 src/usart_basic.o
  .bss.USART_3_rx_head
-                0x00800266        0x1 src/usart_basic.o
+                0x00800416        0x1 src/usart_basic.o
  .bss.USART_3_rxbuf
-                0x00800267       0x10 src/usart_basic.o
+                0x00800417       0x10 src/usart_basic.o
  .bss.USART_2_tx_elements
-                0x00800277        0x1 src/usart_basic.o
+                0x00800427        0x1 src/usart_basic.o
  .bss.USART_2_tx_tail
-                0x00800278        0x1 src/usart_basic.o
+                0x00800428        0x1 src/usart_basic.o
  .bss.USART_2_tx_head
-                0x00800279        0x1 src/usart_basic.o
+                0x00800429        0x1 src/usart_basic.o
  .bss.USART_2_txbuf
-                0x0080027a       0x10 src/usart_basic.o
+                0x0080042a       0x10 src/usart_basic.o
  .bss.USART_2_rx_elements
-                0x0080028a        0x1 src/usart_basic.o
+                0x0080043a        0x1 src/usart_basic.o
  .bss.USART_2_rx_tail
-                0x0080028b        0x1 src/usart_basic.o
+                0x0080043b        0x1 src/usart_basic.o
  .bss.USART_2_rx_head
-                0x0080028c        0x1 src/usart_basic.o
+                0x0080043c        0x1 src/usart_basic.o
  .bss.USART_2_rxbuf
-                0x0080028d       0x20 src/usart_basic.o
+                0x0080043d       0x20 src/usart_basic.o
  .bss.USART_1_tx_elements
-                0x008002ad        0x1 src/usart_basic.o
+                0x0080045d        0x1 src/usart_basic.o
  .bss.USART_1_tx_tail
-                0x008002ae        0x1 src/usart_basic.o
+                0x0080045e        0x1 src/usart_basic.o
  .bss.USART_1_tx_head
-                0x008002af        0x1 src/usart_basic.o
+                0x0080045f        0x1 src/usart_basic.o
  .bss.USART_1_txbuf
-                0x008002b0       0x10 src/usart_basic.o
+                0x00800460       0x10 src/usart_basic.o
  .bss.USART_1_rx_elements
-                0x008002c0        0x1 src/usart_basic.o
+                0x00800470        0x1 src/usart_basic.o
  .bss.USART_1_rx_tail
-                0x008002c1        0x1 src/usart_basic.o
+                0x00800471        0x1 src/usart_basic.o
  .bss.USART_1_rx_head
-                0x008002c2        0x1 src/usart_basic.o
+                0x00800472        0x1 src/usart_basic.o
  .bss.USART_1_rxbuf
-                0x008002c3       0x10 src/usart_basic.o
+                0x00800473       0x80 src/usart_basic.o
  .bss.USART_0_tx_elements
-                0x008002d3        0x1 src/usart_basic.o
+                0x008004f3        0x1 src/usart_basic.o
  .bss.USART_0_tx_tail
-                0x008002d4        0x1 src/usart_basic.o
+                0x008004f4        0x1 src/usart_basic.o
  .bss.USART_0_tx_head
-                0x008002d5        0x1 src/usart_basic.o
+                0x008004f5        0x1 src/usart_basic.o
  .bss.USART_0_txbuf
-                0x008002d6       0x10 src/usart_basic.o
+                0x008004f6       0x10 src/usart_basic.o
  .bss.USART_0_rx_elements
-                0x008002e6        0x1 src/usart_basic.o
+                0x00800506        0x1 src/usart_basic.o
  .bss.USART_0_rx_tail
-                0x008002e7        0x1 src/usart_basic.o
+                0x00800507        0x1 src/usart_basic.o
  .bss.USART_0_rx_head
-                0x008002e8        0x1 src/usart_basic.o
+                0x00800508        0x1 src/usart_basic.o
  .bss.USART_0_rxbuf
-                0x008002e9      0x100 src/usart_basic.o
+                0x00800509      0x100 src/usart_basic.o
  .bss.nextcmp.3022
-                0x008003e9        0x2 driver_isr.o
+                0x00800609        0x2 driver_isr.o
  .bss.m1sectimer
-                0x008003eb        0x8 driver_isr.o
-                0x008003eb                m1sectimer
+                0x0080060b        0x8 driver_isr.o
+                0x0080060b                m1sectimer
  .bss.m4sectimer
-                0x008003f3        0x2 driver_isr.o
-                0x008003f3                m4sectimer
+                0x00800613        0x2 driver_isr.o
+                0x00800613                m4sectimer
  *(COMMON)
- COMMON         0x008003f5        0x6 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(iob.o)
-                0x008003f5                __iob
-                0x008003fb                PROVIDE (__bss_end, .)
-                0x00001138                __data_load_start = LOADADDR (.data)
-                0x0000117a                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x00800615      0x10c neo7m.o
+                0x00800615                realPacket
+                0x00800669                lastGoodPacket
+                0x008006c5                PACKETstore
+ COMMON         0x00800721        0x6 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(iob.o)
+                0x00800721                __iob
+                0x00800727                PROVIDE (__bss_end, .)
+                0x000015f2                __data_load_start = LOADADDR (.data)
+                0x000017da                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x008003fb        0x0
+.noinit         0x00800727        0x0
                 [!provide]                PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                PROVIDE (__noinit_end, .)
-                0x008003fb                _end = .
+                0x00800727                _end = .
                 [!provide]                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
@@ -1012,6 +1022,7 @@ END GROUP
  *(.comment)
  .comment       0x00000000       0x30 atmel_start.o
                                  0x31 (size before relaxing)
+ .comment       0x00000030       0x31 neo7m.o
  .comment       0x00000030       0x31 nextion.o
  .comment       0x00000030       0x31 src/driver_init.o
  .comment       0x00000030       0x31 src/nvmctrl_basic.o
@@ -1023,6 +1034,9 @@ END GROUP
  .comment       0x00000030       0x31 main.o
  .comment       0x00000030       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(iob.o)
  .comment       0x00000030       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(printf.o)
+ .comment       0x00000030       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(putchar.o)
+ .comment       0x00000030       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(puts.o)
+ .comment       0x00000030       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(sprintf.o)
  .comment       0x00000030       0x2c c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(vfprintf_std.o)
                                  0x2d (size before relaxing)
  .comment       0x0000005c       0x31 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr6\libc.a(fputc.o)
@@ -1047,126 +1061,135 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x00000000      0x410
+.debug_aranges  0x00000000      0x498
  *(.debug_aranges)
  .debug_aranges
                 0x00000000       0x20 atmel_start.o
  .debug_aranges
-                0x00000020       0x28 nextion.o
+                0x00000020       0x80 neo7m.o
  .debug_aranges
-                0x00000048       0x58 src/driver_init.o
+                0x000000a0       0x30 nextion.o
  .debug_aranges
-                0x000000a0       0x88 src/nvmctrl_basic.o
+                0x000000d0       0x58 src/driver_init.o
  .debug_aranges
-                0x00000128       0x20 src/protected_io.o
+                0x00000128       0x88 src/nvmctrl_basic.o
  .debug_aranges
-                0x00000148       0x80 src/spi_basic.o
+                0x000001b0       0x20 src/protected_io.o
  .debug_aranges
-                0x000001c8       0x28 src/tc16.o
+                0x000001d0       0x80 src/spi_basic.o
  .debug_aranges
-                0x000001f0      0x1a0 src/usart_basic.o
+                0x00000250       0x28 src/tc16.o
  .debug_aranges
-                0x00000390       0x38 timeutils.o
+                0x00000278      0x1a0 src/usart_basic.o
  .debug_aranges
-                0x000003c8       0x28 driver_isr.o
+                0x00000418       0x38 timeutils.o
  .debug_aranges
-                0x000003f0       0x20 main.o
+                0x00000450       0x28 driver_isr.o
+ .debug_aranges
+                0x00000478       0x20 main.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0x485a
+.debug_info     0x00000000     0x52cd
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x00000000      0xbbc C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.132/gcc/dev/atmega2560/avr6/crtatmega2560.o
  .debug_info    0x00000bbc       0x93 atmel_start.o
- .debug_info    0x00000c4f      0x1cd nextion.o
- .debug_info    0x00000e1c     0x1e55 src/driver_init.o
- .debug_info    0x00002c71      0x6b8 src/nvmctrl_basic.o
- .debug_info    0x00003329       0x7a src/protected_io.o
- .debug_info    0x000033a3      0x33e src/spi_basic.o
- .debug_info    0x000036e1       0xb5 src/tc16.o
- .debug_info    0x00003796      0xab7 src/usart_basic.o
- .debug_info    0x0000424d      0x248 timeutils.o
- .debug_info    0x00004495       0xf3 driver_isr.o
- .debug_info    0x00004588      0x2d2 main.o
+ .debug_info    0x00000c4f      0x8e3 neo7m.o
+ .debug_info    0x00001532      0x266 nextion.o
+ .debug_info    0x00001798     0x1e55 src/driver_init.o
+ .debug_info    0x000035ed      0x6b8 src/nvmctrl_basic.o
+ .debug_info    0x00003ca5       0x7a src/protected_io.o
+ .debug_info    0x00003d1f      0x33e src/spi_basic.o
+ .debug_info    0x0000405d       0xb5 src/tc16.o
+ .debug_info    0x00004112      0xac7 src/usart_basic.o
+ .debug_info    0x00004bd9      0x248 timeutils.o
+ .debug_info    0x00004e21       0xf3 driver_isr.o
+ .debug_info    0x00004f14      0x3b9 main.o
 
-.debug_abbrev   0x00000000     0x17fa
+.debug_abbrev   0x00000000     0x1add
  *(.debug_abbrev)
  .debug_abbrev  0x00000000      0xb1a C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.132/gcc/dev/atmega2560/avr6/crtatmega2560.o
  .debug_abbrev  0x00000b1a       0x63 atmel_start.o
- .debug_abbrev  0x00000b7d      0x106 nextion.o
- .debug_abbrev  0x00000c83      0x19a src/driver_init.o
- .debug_abbrev  0x00000e1d      0x2d6 src/nvmctrl_basic.o
- .debug_abbrev  0x000010f3       0x14 src/protected_io.o
- .debug_abbrev  0x00001107      0x17a src/spi_basic.o
- .debug_abbrev  0x00001281       0x51 src/tc16.o
- .debug_abbrev  0x000012d2      0x2b9 src/usart_basic.o
- .debug_abbrev  0x0000158b       0xf8 timeutils.o
- .debug_abbrev  0x00001683       0x92 driver_isr.o
- .debug_abbrev  0x00001715       0xe5 main.o
+ .debug_abbrev  0x00000b7d      0x293 neo7m.o
+ .debug_abbrev  0x00000e10      0x13c nextion.o
+ .debug_abbrev  0x00000f4c      0x19a src/driver_init.o
+ .debug_abbrev  0x000010e6      0x2d6 src/nvmctrl_basic.o
+ .debug_abbrev  0x000013bc       0x14 src/protected_io.o
+ .debug_abbrev  0x000013d0      0x17a src/spi_basic.o
+ .debug_abbrev  0x0000154a       0x51 src/tc16.o
+ .debug_abbrev  0x0000159b      0x2b9 src/usart_basic.o
+ .debug_abbrev  0x00001854       0xf8 timeutils.o
+ .debug_abbrev  0x0000194c       0x92 driver_isr.o
+ .debug_abbrev  0x000019de       0xff main.o
 
-.debug_line     0x00000000     0x1d63
+.debug_line     0x00000000     0x21c1
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000      0x1f9 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.132/gcc/dev/atmega2560/avr6/crtatmega2560.o
  .debug_line    0x000001f9       0x60 atmel_start.o
- .debug_line    0x00000259      0x194 nextion.o
- .debug_line    0x000003ed      0x43e src/driver_init.o
- .debug_line    0x0000082b      0x4b0 src/nvmctrl_basic.o
- .debug_line    0x00000cdb       0x6d src/protected_io.o
- .debug_line    0x00000d48      0x2ca src/spi_basic.o
- .debug_line    0x00001012       0xe4 src/tc16.o
- .debug_line    0x000010f6      0x909 src/usart_basic.o
- .debug_line    0x000019ff      0x193 timeutils.o
- .debug_line    0x00001b92       0xdc driver_isr.o
- .debug_line    0x00001c6e       0xf5 main.o
+ .debug_line    0x00000259      0x3f6 neo7m.o
+ .debug_line    0x0000064f      0x1b8 nextion.o
+ .debug_line    0x00000807      0x43e src/driver_init.o
+ .debug_line    0x00000c45      0x4b0 src/nvmctrl_basic.o
+ .debug_line    0x000010f5       0x6d src/protected_io.o
+ .debug_line    0x00001162      0x2ca src/spi_basic.o
+ .debug_line    0x0000142c       0xe4 src/tc16.o
+ .debug_line    0x00001510      0x909 src/usart_basic.o
+ .debug_line    0x00001e19      0x193 timeutils.o
+ .debug_line    0x00001fac       0xdc driver_isr.o
+ .debug_line    0x00002088      0x139 main.o
 
-.debug_frame    0x00000000      0x998
+.debug_frame    0x00000000      0xbe8
  *(.debug_frame)
  .debug_frame   0x00000000       0x24 atmel_start.o
- .debug_frame   0x00000024       0x88 nextion.o
- .debug_frame   0x000000ac       0x94 src/driver_init.o
- .debug_frame   0x00000140      0x17c src/nvmctrl_basic.o
- .debug_frame   0x000002bc      0x134 src/spi_basic.o
- .debug_frame   0x000003f0       0x34 src/tc16.o
- .debug_frame   0x00000424      0x414 src/usart_basic.o
- .debug_frame   0x00000838       0xb0 timeutils.o
- .debug_frame   0x000008e8       0x80 driver_isr.o
- .debug_frame   0x00000968       0x30 main.o
+ .debug_frame   0x00000024      0x234 neo7m.o
+ .debug_frame   0x00000258       0xa0 nextion.o
+ .debug_frame   0x000002f8       0x94 src/driver_init.o
+ .debug_frame   0x0000038c      0x17c src/nvmctrl_basic.o
+ .debug_frame   0x00000508      0x134 src/spi_basic.o
+ .debug_frame   0x0000063c       0x34 src/tc16.o
+ .debug_frame   0x00000670      0x414 src/usart_basic.o
+ .debug_frame   0x00000a84       0xb0 timeutils.o
+ .debug_frame   0x00000b34       0x80 driver_isr.o
+ .debug_frame   0x00000bb4       0x34 main.o
 
-.debug_str      0x00000000     0x1843
+.debug_str      0x00000000     0x19fd
  *(.debug_str)
  .debug_str     0x00000000      0x3e6 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.132/gcc/dev/atmega2560/avr6/crtatmega2560.o
  .debug_str     0x000003e6      0x154 atmel_start.o
                                 0x188 (size before relaxing)
- .debug_str     0x0000053a       0x69 nextion.o
-                                0x1cd (size before relaxing)
- .debug_str     0x000005a3      0x7c7 src/driver_init.o
+ .debug_str     0x0000053a      0x2bf neo7m.o
+                                0x441 (size before relaxing)
+ .debug_str     0x000007f9       0x6f nextion.o
+                                0x1f3 (size before relaxing)
+ .debug_str     0x00000868      0x7bf src/driver_init.o
                                 0x94b (size before relaxing)
- .debug_str     0x00000d6a      0x277 src/nvmctrl_basic.o
+ .debug_str     0x00001027      0x272 src/nvmctrl_basic.o
                                 0x3fd (size before relaxing)
- .debug_str     0x00000fe1      0x1ce src/spi_basic.o
+ .debug_str     0x00001299      0x1ce src/spi_basic.o
                                 0x35b (size before relaxing)
- .debug_str     0x000011af        0xe src/tc16.o
+ .debug_str     0x00001467        0xe src/tc16.o
                                 0x198 (size before relaxing)
- .debug_str     0x000011bd      0x527 src/usart_basic.o
+ .debug_str     0x00001475      0x505 src/usart_basic.o
                                 0x708 (size before relaxing)
- .debug_str     0x000016e4       0x4d timeutils.o
+ .debug_str     0x0000197a       0x40 timeutils.o
                                 0x1cd (size before relaxing)
- .debug_str     0x00001731       0x32 driver_isr.o
+ .debug_str     0x000019ba       0x32 driver_isr.o
                                 0x1ba (size before relaxing)
- .debug_str     0x00001763       0xe0 main.o
-                                0x272 (size before relaxing)
+ .debug_str     0x000019ec       0x11 main.o
+                                0x290 (size before relaxing)
 
-.debug_loc      0x00000000     0x1ef1
+.debug_loc      0x00000000     0x2763
  *(.debug_loc)
- .debug_loc     0x00000000      0x160 nextion.o
- .debug_loc     0x00000160      0x993 src/driver_init.o
- .debug_loc     0x00000af3      0x92d src/nvmctrl_basic.o
- .debug_loc     0x00001420      0x1e6 src/spi_basic.o
- .debug_loc     0x00001606      0x5b7 src/usart_basic.o
- .debug_loc     0x00001bbd      0x20b timeutils.o
- .debug_loc     0x00001dc8       0xed driver_isr.o
- .debug_loc     0x00001eb5       0x3c main.o
+ .debug_loc     0x00000000      0x788 neo7m.o
+ .debug_loc     0x00000788      0x1e8 nextion.o
+ .debug_loc     0x00000970      0x993 src/driver_init.o
+ .debug_loc     0x00001303      0x92d src/nvmctrl_basic.o
+ .debug_loc     0x00001c30      0x1e6 src/spi_basic.o
+ .debug_loc     0x00001e16      0x5b7 src/usart_basic.o
+ .debug_loc     0x000023cd      0x20b timeutils.o
+ .debug_loc     0x000025d8       0xed driver_isr.o
+ .debug_loc     0x000026c5       0x9e main.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -1186,18 +1209,19 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x00000000      0x350
+.debug_ranges   0x00000000      0x3c8
  *(.debug_ranges)
  .debug_ranges  0x00000000       0x10 atmel_start.o
- .debug_ranges  0x00000010       0x18 nextion.o
- .debug_ranges  0x00000028       0x48 src/driver_init.o
- .debug_ranges  0x00000070       0x78 src/nvmctrl_basic.o
- .debug_ranges  0x000000e8       0x70 src/spi_basic.o
- .debug_ranges  0x00000158       0x18 src/tc16.o
- .debug_ranges  0x00000170      0x190 src/usart_basic.o
- .debug_ranges  0x00000300       0x28 timeutils.o
- .debug_ranges  0x00000328       0x18 driver_isr.o
- .debug_ranges  0x00000340       0x10 main.o
+ .debug_ranges  0x00000010       0x70 neo7m.o
+ .debug_ranges  0x00000080       0x20 nextion.o
+ .debug_ranges  0x000000a0       0x48 src/driver_init.o
+ .debug_ranges  0x000000e8       0x78 src/nvmctrl_basic.o
+ .debug_ranges  0x00000160       0x70 src/spi_basic.o
+ .debug_ranges  0x000001d0       0x18 src/tc16.o
+ .debug_ranges  0x000001e8      0x190 src/usart_basic.o
+ .debug_ranges  0x00000378       0x28 timeutils.o
+ .debug_ranges  0x000003a0       0x18 driver_isr.o
+ .debug_ranges  0x000003b8       0x10 main.o
 
 .debug_macro
  *(.debug_macro)

@@ -9,8 +9,11 @@
 #ifndef NEXTION_H_
 #define NEXTION_H_
 
-
+// try to get one packet from the LCD
 void decodelcd(void);
+
+// write a number digit on the LCD to a num object
+void setndig(char *, int);
 
 
 #endif /* NEXTION_H_ */

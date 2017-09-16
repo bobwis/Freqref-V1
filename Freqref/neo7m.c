@@ -25,8 +25,6 @@ static const unsigned char UBXGPS_HEADER[] = { 0xB5, 0x62, 0x01,0x07 };
 
 unsigned char PACKETstore[92];  //TODO, whats the max size of packet?
 
- 
-
 unsigned char lastGoodPacket [92]; 
 int IsPacketReady(unsigned char c);  
 
@@ -262,8 +260,13 @@ void changeFrequency() {
 		0x08, // id
 		0x06, // length
 		0x00, // length
+#if 0
 		0x64, // payload
 		0x00, // payload
+#else
+		0x08, // payload
+		0x3e, // payload
+#endif
 		0x01, // payload
 		0x00, // payload
 		0x01, // payload
@@ -340,8 +343,10 @@ void loop()
 			for(unsigned int i = offset; i<sizeof(realPacket); i++){
 			    *((char*)(&realPacket) + (i-offset)) = PACKETstore[i];
 			}
+#if 1
 			printf("Date  %d %d %d  ", realPacket.day, realPacket.month,  realPacket.year);
 			printf("Time %d:%d:%d  UTC     Epoch  %lu\r\n", realPacket.hour, realPacket.min,  realPacket.sec,realPacket.iTOW);
+#endif
 
 		}
 	}
@@ -447,6 +452,13 @@ int IsPacketReady(unsigned char c)
 	UbxGpsv.carriagePosition =p;
 	return false;
 }
+
+// Update RealPacket
+void updategps(void)
+{
+	loop();
+}
+
 void setupneo() 
 {
 	
@@ -480,10 +492,4 @@ void setupneo()
 	printf("Auto-configuration is complete!\n\r");
 
 	fastdelay_ms(100); // Little delay before flushing
-	while(1)
-	{
-
-		loop();
-		//printf("finished loop");
-		}
 }

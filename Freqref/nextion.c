@@ -11,6 +11,9 @@
 #include "timeutils.h"
 #include <stdio.h>
 
+
+// try to get a single message packet from the LCD
+// returns length of packet or -1 if timeout
 int getlcdpkt(unsigned char buffer[])
 {
 	volatile int termcnt, i;
@@ -42,10 +45,24 @@ int getlcdpkt(unsigned char buffer[])
 	return(i);
 }
 
+// write a number digit on the LCD to a num object
+void setndig(char *id, uint8_t val)
+{
+	int i;
+	char msg[16];
+	
+	sprintf(msg,"%s.val=%1d\xff\xff\xff",id,val);
+	for (i=0; msg[i]; i++)
+	{
+		USART_2_write(msg[i]);
+	}
+}
+
 void decodelcd()
 {
 	volatile int i, j;
 	unsigned char buffer[64];
+
 
 	j = -1;
 	while (j)
@@ -59,9 +76,14 @@ void decodelcd()
 			}
 			printf("\n\r");
 		}
+#if 0
 		else
 		{
 			printf("Still waiting for LCD press\n\r");
 		}
+#else
+	return;
+#endif
 	}
 }
+

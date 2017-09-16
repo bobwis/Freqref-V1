@@ -12,6 +12,8 @@ examples\src\usart_basic_example.c
 
 neo7m.c
 
+nextion.c
+
 src\driver_init.c
 
 src\nvmctrl_basic.c
