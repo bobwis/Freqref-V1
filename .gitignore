@@ -1,4 +1,4 @@
-Freqref\Debug\
+Debug\
 *.elf
 *.hex
 *.lss
@@ -9,3 +9,10 @@ Freqref\Debug\
 *.elf
 *.o
 .vs\
+*.d
+*.o
+*.srec
+*.map
+*.hex
+*.elf
+*.eep

@@ -41,6 +41,14 @@ static struct /*UbxGps*/ {
 	unsigned short headerLength;
 } UbxGpsv;
 
+int isGoodChecksum()
+{
+	unsigned char CK_A = 0;
+	unsigned char CK_B = 0;
+	for(int i=2;i<sizeof(PACKETstore)-2;i++) 	{ CK_A = CK_A + PACKETstore[i];  CK_B = CK_B + CK_A; }
+	return (CK_A == PACKETstore[sizeof(PACKETstore)-2] && CK_B == PACKETstore[sizeof(PACKETstore)-1]);
+}
+
 /**
 *Extracts from  UBX GPS Library
 * Created by Danila Loginov, July 2, 2016
@@ -324,6 +332,9 @@ void enableNavPvt() {
 
 
 
+#define PRINTDEBUG
+//#define GPSOUT  // uncomment if you want to use u-Center
+
 // If there is data from the receiver, read it and send to the PC or vice versa
 void loop() 
 {
@@ -332,23 +343,23 @@ void loop()
 	if (USART_1_is_rx_ready()) 
 	{
 		data = USART_1_read();
-	 	//USART_3_write(data);
-		
-		
-
+#ifdef GPSOUT
+		USART_3_write(data);
+#else
 		if(IsPacketReady(data))
 		{
-		//	printf("Packet ready\r\n");
-		//	printPacket(PACKETstore,92);
-			for(unsigned int i = offset; i<sizeof(realPacket); i++){
-			    *((char*)(&realPacket) + (i-offset)) = PACKETstore[i];
+			//printPacket(PACKETstore,92);
+			for(unsigned int i = offset; i<sizeof(realPacket); i++)
+			{
+				*((char*)(&realPacket) + (i-offset)) = PACKETstore[i];
 			}
-#if 1
+		
+#ifdef PRINTDEBUG
 			printf("Date  %d %d %d  ", realPacket.day, realPacket.month,  realPacket.year);
 			printf("Time %d:%d:%d  UTC     Epoch  %lu\r\n", realPacket.hour, realPacket.min,  realPacket.sec,realPacket.iTOW);
 #endif
-
 		}
+#endif
 	}
 	if (USART_3_is_rx_ready()) 
 	{
@@ -356,16 +367,6 @@ void loop()
 	}
 }
 
-
-void calculateChecksum()
-{
-	memset(UbxGpsv.checksum, 0, 2);
-    for (int i = 0; i < UbxGpsv.size; i++) 
-	{
-        UbxGpsv.checksum[0] += PACKETstore[i + UbxGpsv.offsetClassProperties];
-        UbxGpsv.checksum[1] += UbxGpsv.checksum[0];
-    }
-}
 
 // start/complete filling in the current packet
 int IsPacketReady(unsigned char c)  
@@ -400,55 +401,13 @@ int IsPacketReady(unsigned char c)
 		{
 			p=0;
 			UbxGpsv.carriagePosition =p;
-			return true;
+			if(isGoodChecksum())
+			{
+				return true;
+			}
+
 		}
 	}	
-/*	
-		// Put byte read to particular address of this object which depends on carriage position
-		if (p < (UbxGpsv.size + 2)) 
-		{
-			PACKETstore[p - 2 + UbxGpsv.offsetClassProperties] = c;
-		}
-		// Move the carriage forward
-		p++;
-		// Carriage is at the first checksum byte, we can calculate our checksum, but not compare because this byte is not read
-		if (p == (UbxGpsv.size + 2)) 
-		{
-			printf("-c*");
-			calculateChecksum();
-			printf("-d*");
-		}
-		// Carriage is at the second checksum byte, but only the first byte of checksum read, check if it equals to ours
-		else if (p == (UbxGpsv.size + 3)) 
-		{
-			// Reset if not
-			if (c != UbxGpsv.checksum[0]) 
-			{
-	//			p = 0;   //ignore the checksum for testing
-			//	printf("Got %d when expecting %d\r\n",c,UbxGpsv.checksum[0]);
-			}
-		}
-		// Carriage is after the second checksum byte, which has been read, check if it equals to ours
-		else if (p == (UbxGpsv.size + 4)) 
-		{
-			// Reset the carriage
-        p = 0;
-		// The readings are correct and filled the object, return true
-        if (c == UbxGpsv.checksum[1]) 
-		{
-			UbxGpsv.carriagePosition = p;
-			printf("-f*");
-            return 1;
-        }
-     }
-     // Reset the carriage if it is out of packet
-     else if (p > (UbxGpsv.size + 4)) 
-	 {
-		p = 0;
-		printf("Out of packet*\r\n");
-     }
-    }
-*/	 
 	UbxGpsv.carriagePosition =p;
 	return false;
 }
