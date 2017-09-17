@@ -259,6 +259,7 @@ void changeBaudrate() {
 }
 
 // Function, sending packet to the receiver to change frequency to 100 ms
+#define SEC
 void changeFrequency() {
 	// CFG-RATE packet
 	byte packet[] = {
@@ -268,21 +269,25 @@ void changeFrequency() {
 		0x08, // id
 		0x06, // length
 		0x00, // length
-#if 0
+#ifndef SEC
 		0x64, // payload
 		0x00, // payload
 #else
-		0x08, // payload
-		0x3e, // payload
+		0xE8, // payload
+		0x03, // payload
 #endif
 		0x01, // payload
 		0x00, // payload
 		0x01, // payload
 		0x00, // payload
+#ifndef SEC
 		0x7A, // CK_A
 		0x12, // CK_B
+#else
+		0x01, // CK_A
+		0x39, // CK_B
+#endif
 	};
-
 	sendPacket(packet, sizeof(packet));
 }
 
@@ -330,6 +335,18 @@ void enableNavPvt() {
 	sendPacket(packet, sizeof(packet));
 }
 
+// Function, to set time pulse2 to 10MHz
+// pulse only running when GPS locked to UTC
+void enableNaTP5() {
+	// CFG-MSG packet
+	byte packet[] = {
+	0xB5,0x62,0x06,0x31,0x20,0x00,0x01,0x01,0x00,0x00,0x32,0x00,0x00,0x00,0x01,
+	0x00,0x00,0x00,0x80,0x96,0x98,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80,
+	0x00,0x00,0x00,0x00,0x6F,0x00,0x00,0x00,0x29,0xA8
+	};
+
+	sendPacket(packet, sizeof(packet));
+}
 
 
 #define PRINTDEBUG
