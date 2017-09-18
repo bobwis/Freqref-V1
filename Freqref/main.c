@@ -30,16 +30,21 @@ int main(void)
 
 		//		decodelcd();		// lcd test and debug
 		// Update RealPacket
-		updategps();
-		if (fastmsectime() > (now + 500/4))		// timeout 0.5 secs
+
+		if (fastmsectime() > (now + 200/4))		// timeout 0.20 secs
 		{
 			now = fastmsectime();
-			setndig("n1",realPacket.hour/10);
-			setndig("n2",realPacket.hour%10);
-			setndig("n3",realPacket.min/10);
-			setndig("n4",realPacket.min%10);
-			setndig("n5",realPacket.sec/10);
-			setndig("n6",realPacket.sec%10);
+			setndig("n1",NavPvt.hour/10);
+			setndig("n2",NavPvt.hour%10);
+			setndig("n3",NavPvt.min/10);
+			setndig("n4",NavPvt.min%10);
+			setndig("n5",NavPvt.sec/10);
+			setndig("n6",NavPvt.sec%10);
+#define PRINTDEBUG
+#ifdef PRINTDEBUG
+			printf("Date  %d %d %d  ", NavPvt.day, NavPvt.month,  NavPvt.year);
+			printf("Time %d:%d:%d  UTC     Epoch  %lu\r\n", NavPvt.hour, NavPvt.min,  NavPvt.sec,NavPvt.iTOW);
+#endif
 		}
 	}
 

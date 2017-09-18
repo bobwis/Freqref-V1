@@ -25,12 +25,12 @@ static const unsigned char UBXGPS_HEADER[] = { 0xB5, 0x62, 0x01,0x07 };
 
 unsigned char PACKETstore[92];  //TODO, whats the max size of packet?
 
-unsigned char lastGoodPacket [92]; 
-int IsPacketReady(unsigned char c);  
+unsigned char lastGoodPacket [92];
+int IsPacketReady(unsigned char c);
 
 static struct /*UbxGps*/ {
-	unsigned char offsetClassProperties : 8;
-	unsigned char offsetHeaders : 4;
+	unsigned char offsetClassProperties;
+	unsigned char offsetHeaders;
 	unsigned char size;
 	unsigned char carriagePosition;
 	unsigned char checksum[2];
@@ -39,15 +39,9 @@ static struct /*UbxGps*/ {
 	unsigned char headerClass;
 	unsigned char headerId;
 	unsigned short headerLength;
-} UbxGpsv;
+} UbxGpsv = {.offsetClassProperties = 8, .offsetHeaders = 4, .carriagePosition = 0, };
 
-int isGoodChecksum()
-{
-	unsigned char CK_A = 0;
-	unsigned char CK_B = 0;
-	for(int i=2;i<sizeof(PACKETstore)-2;i++) 	{ CK_A = CK_A + PACKETstore[i];  CK_B = CK_B + CK_A; }
-	return (CK_A == PACKETstore[sizeof(PACKETstore)-2] && CK_B == PACKETstore[sizeof(PACKETstore)-1]);
-}
+
 
 /**
 *Extracts from  UBX GPS Library
@@ -106,7 +100,7 @@ void printPacket(byte *packet, byte len) {
 		}
 		else
 		{
-			printf(" "); 
+			printf(" ");
 		}
 		sprintf(temp, "%.2X", packet[i]);
 		printf(temp);
@@ -269,24 +263,24 @@ void changeFrequency() {
 		0x08, // id
 		0x06, // length
 		0x00, // length
-#ifndef SEC
+		#ifndef SEC
 		0x64, // payload
 		0x00, // payload
-#else
+		#else
 		0xE8, // payload
 		0x03, // payload
-#endif
+		#endif
 		0x01, // payload
 		0x00, // payload
 		0x01, // payload
 		0x00, // payload
-#ifndef SEC
+		#ifndef SEC
 		0x7A, // CK_A
 		0x12, // CK_B
-#else
+		#else
 		0x01, // CK_A
 		0x39, // CK_B
-#endif
+		#endif
 	};
 	sendPacket(packet, sizeof(packet));
 }
@@ -340,108 +334,105 @@ void enableNavPvt() {
 void enableNaTP5() {
 	// CFG-MSG packet
 	byte packet[] = {
-	0xB5,0x62,0x06,0x31,0x20,0x00,0x01,0x01,0x00,0x00,0x32,0x00,0x00,0x00,0x01,
-	0x00,0x00,0x00,0x80,0x96,0x98,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80,
-	0x00,0x00,0x00,0x00,0x6F,0x00,0x00,0x00,0x29,0xA8
+		0xB5,0x62,0x06,0x31,0x20,0x00,0x01,0x01,0x00,0x00,0x32,0x00,0x00,0x00,0x01,
+		0x00,0x00,0x00,0x80,0x96,0x98,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80,
+		0x00,0x00,0x00,0x00,0x6F,0x00,0x00,0x00,0x29,0xA8
 	};
 
 	sendPacket(packet, sizeof(packet));
 }
 
 
-#define PRINTDEBUG
 //#define GPSOUT  // uncomment if you want to use u-Center
 
-// If there is data from the receiver, read it and send to the PC or vice versa
-void loop() 
+// Read chars from the GPS port
+// If there is a PVT packet ready, copy it to the global strct
+// **** NOTE ****  This is called from within Timer 4 Interrupt Service Routine every 4.096mS
+void processgps(void)
 {
 	const unsigned char offset =6;
 	unsigned char data;
-	if (USART_1_is_rx_ready()) 
+	while (USART_1_is_rx_ready())
 	{
 		data = USART_1_read();
-#ifdef GPSOUT
+#ifdef UCENTRE
 		USART_3_write(data);
-#else
-		if(IsPacketReady(data))
+		while (USART_3_is_rx_ready())
 		{
-			//printPacket(PACKETstore,92);
-			for(unsigned int i = offset; i<sizeof(realPacket); i++)
-			{
-				*((char*)(&realPacket) + (i-offset)) = PACKETstore[i];
-			}
-		
-#ifdef PRINTDEBUG
-			printf("Date  %d %d %d  ", realPacket.day, realPacket.month,  realPacket.year);
-			printf("Time %d:%d:%d  UTC     Epoch  %lu\r\n", realPacket.hour, realPacket.min,  realPacket.sec,realPacket.iTOW);
-#endif
+			unsigned char ch;
+			ch = USART_3_read();
+			USART_1_write(ch);
 		}
 #endif
-	}
-	if (USART_3_is_rx_ready()) 
-	{
-		USART_1_write(USART_3_read());
+		if(IsPacketReady(data))
+		{
+			for(unsigned int i = offset; i<sizeof(NavPvt); i++)
+			{
+				*((char*)(&NavPvt) + (i-offset)) = PACKETstore[i];		// copy into global struct
+			}
+		}
 	}
 }
 
+int isGoodChecksum()
+{
+	unsigned char CK_A = 0;
+	unsigned char CK_B = 0;
+
+	for (int i=2; i<sizeof(4 + 84); i++)
+	{ 
+		CK_A = CK_A + PACKETstore[i];
+		CK_B = CK_B + CK_A; 
+	}
+	return ((CK_A == PACKETstore[4 + 84 + 1]) && (CK_B == PACKETstore[4 + 84 + 2]));
+}
 
 // start/complete filling in the current packet
-int IsPacketReady(unsigned char c)  
-{   
-   // get current position in packet
-   unsigned char p = UbxGpsv.carriagePosition; 
-   if (p < 2)     // this should only care about PVT messages
-   {		
+int IsPacketReady(unsigned char c)
+{
+	// get current position in packet
+	unsigned char p = UbxGpsv.carriagePosition;
+	if (p < 4)     // this looks for PVT messages
+	{
 		// are we starting a packet?
-		if (c == UBXGPS_HEADER[p]) 
+		if (c == UBXGPS_HEADER[p])
 		{
-			PACKETstore[p] = c;
-			p++; 			
-		} 
-		else 
-		{ 
-			p = 0;
-		}         
-   }
-   // found a packet header, start filling
-   else 
-   
-   {
-		//if we are here, we've got some of the right packet.  Lets just try getting all 86 bytes
-		if(p <93)
-		{
-			PACKETstore[p] = c;
-			p++;
-		 
+			PACKETstore[p++] = c;
 		}
 		else
 		{
-			p=0;
-			UbxGpsv.carriagePosition =p;
+			p = 0;
+		}
+	}
+	else  // found a packet header, start filling
+	{
+		//if we are here, we've got some of the right packet.  Lets just try getting all the bytes
+		if(p < 4 + 84 + 2)
+		{
+			PACKETstore[p++] = c;	
+		}
+		else  // rx packet size completed
+		{
+			p = 0;
+			UbxGpsv.carriagePosition = p;
 			if(isGoodChecksum())
 			{
 				return true;
 			}
-
 		}
-	}	
-	UbxGpsv.carriagePosition =p;
+	}
+	UbxGpsv.carriagePosition = p;
 	return false;
 }
 
-// Update RealPacket
-void updategps(void)
-{
-	loop();
-}
 
-void setupneo() 
+void setupneo()
 {
 	
 	// Disabling NMEA messages by sending appropriate packets
 	printf("Disabling NMEA messages...\n\r");
 	disableNmea();
-
+	#if 0
 	// Switching receiver's serial to the wanted baudrate
 	if (GPS_WANTED_BAUDRATE != GPS_DEFAULT_BAUDRATE) {
 		printf("Switching receiver to the wanted baudrate which is ");
@@ -452,9 +443,9 @@ void setupneo()
 
 		fastdelay_ms(100); // Little delay before flushing
 	}
-
-	// Increasing frequency to 100 ms
-	printf("Changing receiving frequency to 100 ms...\n\r");
+	#endif
+	// 	Set reporting frequency to 1 Sec
+	printf("Changing receiving frequency to 1 Sec...\n\r");
 	changeFrequency();
 
 	// Disabling unnecessary channels like SBAS or QZSS

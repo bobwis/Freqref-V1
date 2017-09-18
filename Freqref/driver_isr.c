@@ -55,12 +55,15 @@
 #include <compiler.h>
 
 volatile uint16_t m4sectimer = 0;		// global 4.096mS tick count (16 bits)
+extern void processgps(void);
 
 ISR(TIMER4_COMPA_vect)
 {
 
 	/* Insert your TIMER_0 compare channel A interrupt handling code here */
 	m4sectimer++;
+
+	processgps();		// see if gps receive packet available and copy to struct if so
 }
 
 volatile uint64_t m1sectimer = 0;		// global 1mS tick count (64 bits)

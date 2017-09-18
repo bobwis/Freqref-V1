@@ -52,13 +52,13 @@ struct UbxGpsNavPvt {
     short           reserved2;  // -      Reserved																	78
     unsigned  long  reserved3;  // -      Reserved																	80
 
-} realPacket; 
+} NavPvt; 
 
 
 // set up the newo7 as we want it
 extern void setupneo(void);
 
-// Update RealPacket
+// Update NavPvt
 extern void updategps(void);
 
 #endif /* NEO7M_H_ */

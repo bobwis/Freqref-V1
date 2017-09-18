@@ -368,8 +368,8 @@ void USART_2_write(const uint8_t data);
 
 /* USART_3 Ringbuffer */
 
-#define USART_3_RX_BUFFER_SIZE 16
-#define USART_3_TX_BUFFER_SIZE 16
+#define USART_3_RX_BUFFER_SIZE 64
+#define USART_3_TX_BUFFER_SIZE 256
 #define USART_3_RX_BUFFER_MASK (USART_3_RX_BUFFER_SIZE - 1)
 #define USART_3_TX_BUFFER_MASK (USART_3_TX_BUFFER_SIZE - 1)
 

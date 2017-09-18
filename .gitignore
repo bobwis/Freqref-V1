@@ -16,3 +16,12 @@ Debug\
 *.hex
 *.elf
 *.eep
+*.elf
+*.hex
+*.lss
+*.map
+*.srec
+*.o
+*.o
+*.o
+.vs/Freqref/v14/.atsuo
