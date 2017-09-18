@@ -31,7 +31,7 @@ int main(void)
 		//		decodelcd();		// lcd test and debug
 		// Update RealPacket
 
-		if (fastmsectime() > (now + 200/4))		// timeout 0.20 secs
+		if (fastmsectime() > (now + 990/4))		// timeout almost 1 sec
 		{
 			now = fastmsectime();
 			setndig("n1",NavPvt.hour/10);
@@ -42,8 +42,8 @@ int main(void)
 			setndig("n6",NavPvt.sec%10);
 #define PRINTDEBUG
 #ifdef PRINTDEBUG
-			printf("Date  %d %d %d  ", NavPvt.day, NavPvt.month,  NavPvt.year);
-			printf("Time %d:%d:%d  UTC     Epoch  %lu\r\n", NavPvt.hour, NavPvt.min,  NavPvt.sec,NavPvt.iTOW);
+			printf("Date  %d %02d %02d  ", NavPvt.day, NavPvt.month,  NavPvt.year);
+			printf("Time %02d:%02d:%02d  UTC     Epoch  %lu\r\n", NavPvt.hour, NavPvt.min,  NavPvt.sec,NavPvt.iTOW);
 #endif
 		}
 	}

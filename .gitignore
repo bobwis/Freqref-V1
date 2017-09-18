@@ -5,13 +5,8 @@ Debug\
 *.map
 *.srec
 *.o
-*.o
-*.elf
-*.o
 .vs\
 *.d
-*.o
-*.srec
 *.map
 *.hex
 *.elf
@@ -19,9 +14,4 @@ Debug\
 *.elf
 *.hex
 *.lss
-*.map
-*.srec
-*.o
-*.o
-*.o
 .vs/Freqref/v14/.atsuo
