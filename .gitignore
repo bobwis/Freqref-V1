@@ -1,4 +1,4 @@
-Debug\
+Debug/
 *.elf
 *.hex
 *.lss
@@ -13,5 +13,4 @@ Debug\
 *.elf
 *.hex
 *.lss
-Debug\
 .vs/Freqref/v14/.atsuo
