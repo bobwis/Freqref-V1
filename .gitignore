@@ -1,16 +1,3 @@
 Debug/
-*.elf
-*.hex
-*.lss
-*.map
-*.srec
-*.o
-*.d
-*.map
-*.hex
-*.elf
-*.eep
-*.elf
-*.hex
-*.lss
+Release/
 .vs/Freqref/v14/.atsuo
