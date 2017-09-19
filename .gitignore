@@ -5,7 +5,6 @@ Debug\
 *.map
 *.srec
 *.o
-.vs\
 *.d
 *.map
 *.hex
@@ -14,4 +13,5 @@ Debug\
 *.elf
 *.hex
 *.lss
+Debug\
 .vs/Freqref/v14/.atsuo
