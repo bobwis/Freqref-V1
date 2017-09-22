@@ -11,6 +11,7 @@
 
 volatile extern uint8_t	lcdstatus;
 volatile extern uint8_t lcdevent;
+extern unsigned char lcdrxbuffer[32];
 
 // try to get one packet from the LCD
 extern void decodelcd(void);

@@ -34,9 +34,6 @@ int main(void)
 	sei();
 
 	printf("Hello World\n\r");
-
-	fastdelay_ms(5000/4);
-
 	setupneo();
 	printf("Neo7 setup returned\n\r");
 
@@ -48,24 +45,15 @@ int main(void)
 
 	while(1)
 	{
-		if (fastmsectime() > (now + 1500/4))		// timeout 
+		if (fastmsectime() > (now + 500/4))		// timeout 0.5 sec
 		{
 			now = fastmsectime();
-			setlcdpage((pages[pageindex]),false);
-
 			if (pageindex == 0)
 			{
 				displayclock();
 			}
-
-			getlcdpage();
-//			pageindex++;
-			
-			if (pageindex == 7)
-			{
-				pageindex = 0;
-			}
 		}
+		ladder();
 	}
 
 	printf("Goodbye World\n\r");

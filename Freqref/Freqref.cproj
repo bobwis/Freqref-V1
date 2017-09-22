@@ -280,6 +280,9 @@
     <Compile Include="ladder.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="ladder.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="neo7m.c">
       <SubType>compile</SubType>
     </Compile>

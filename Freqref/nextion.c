@@ -67,10 +67,10 @@ unsigned char getlcdack()
 
 	lcdstatus = 0xff;
 	now = fastmsectime();
-	printf("waiting for lcd status\n\r");
+//	printf("waiting for lcd status\n\r");
 	while((lcdstatus == 0xff) && (fastmsectime() < (now + (1000/4))))
 	{
-		// wait for lcd rx interrupt service to get something
+		;// wait for lcd rx interrupt service to get something
 	}
 	if (lcdstatus == 0xff)
 	{
@@ -78,7 +78,7 @@ unsigned char getlcdack()
 	}
 	else
 	{
-		printf("lcd status %02x\n\r",lcdstatus);
+//		printf("lcd status %02x\n\r",lcdstatus);
 	}
 	return(lcdstatus);
 }
@@ -97,7 +97,7 @@ char getlcdpage()
 	}
 	if (lcdrxbuffer[0] == 0x66)		// 'page id' response
 	{
-		printf("we are on page %i\n\r",lcdrxbuffer[1]);
+//		printf("we are on page %i\n\r",lcdrxbuffer[1]);
 		return(lcdrxbuffer[1]);
 	}
 	return(-1);
@@ -176,11 +176,14 @@ extern void processnex(void)
 			lcdstatus = lcdrxbuffer[0];
 			if ((lcdrxbuffer[0] >= NEX_SINV) && (lcdrxbuffer[0] < NEX_SLEN))	// a status code packet
 			{
+				lcdevent = 0;
 				printf("LCDstat %02x\n\r",lcdrxbuffer[0]);
 			}
 			else  // this is an 'touch event' type of packet
 			{
 				lcdevent = 0xff;
+				if (lcdrxbuffer[0] != 0x66)
+					printf("LCDtouch %02x\n\r",lcdrxbuffer[0]);
 			}
 		}
 	}
