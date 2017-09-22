@@ -4,12 +4,28 @@
 #include "nextion.h"
 #include <stdio.h>
 
+void displayclock()
+{
+	unsigned char est;
+
+	est = (NavPvt.hour + 10) % 24;
+	setndig("top.n1",est/10);
+	setndig("top.n2",est%10);
+	setndig("top.n3",NavPvt.min/10);
+	setndig("top.n4",NavPvt.min%10);
+	setndig("top.n5",NavPvt.sec/10);
+	setndig("top.n6",NavPvt.sec%10);
+
+}
 
 int main(void)
 {
 	volatile int i;
 	unsigned int now;
 	volatile unsigned char ch;
+	int pageindex;
+
+	char * pages[7] ={"0", "1", "ocxo", "3", "4", "5", "6"};
 
 	now = fastmsectime();
 
@@ -24,27 +40,31 @@ int main(void)
 	setupneo();
 	printf("Neo7 setup returned\n\r");
 
+	setlcdpage("top",true);
+	pageindex = 0;
+
+	// main loop to process all the modules
 	now = fastmsectime();
+
 	while(1)
 	{
-
-		//		decodelcd();		// lcd test and debug
-		// Update RealPacket
-
-		if (fastmsectime() > (now + 990/4))		// timeout almost 1 sec
+		if (fastmsectime() > (now + 1500/4))		// timeout 
 		{
 			now = fastmsectime();
-			setndig("n1",NavPvt.hour/10);
-			setndig("n2",NavPvt.hour%10);
-			setndig("n3",NavPvt.min/10);
-			setndig("n4",NavPvt.min%10);
-			setndig("n5",NavPvt.sec/10);
-			setndig("n6",NavPvt.sec%10);
-#define PRINTDEBUG
-#ifdef PRINTDEBUG
-			printf("Date  %d %02d %02d  ", NavPvt.day, NavPvt.month,  NavPvt.year);
-			printf("Time %02d:%02d:%02d  UTC     Epoch  %lu\r\n", NavPvt.hour, NavPvt.min,  NavPvt.sec,NavPvt.iTOW);
-#endif
+			setlcdpage((pages[pageindex]),false);
+
+			if (pageindex == 0)
+			{
+				displayclock();
+			}
+
+			getlcdpage();
+//			pageindex++;
+			
+			if (pageindex == 7)
+			{
+				pageindex = 0;
+			}
 		}
 	}
 

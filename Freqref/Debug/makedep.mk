@@ -10,6 +10,8 @@ examples\src\spi_basic_example.c
 
 examples\src\usart_basic_example.c
 
+ladder.c
+
 neo7m.c
 
 nextion.c

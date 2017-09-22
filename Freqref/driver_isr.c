@@ -56,14 +56,26 @@
 
 volatile uint16_t m4sectimer = 0;		// global 4.096mS tick count (16 bits)
 extern void processgps(void);
+extern void processnex(void);
 
 ISR(TIMER4_COMPA_vect)
 {
+static uint8_t divider = 0;
 
 	/* Insert your TIMER_0 compare channel A interrupt handling code here */
 	m4sectimer++;
 
-	processgps();		// see if gps receive packet available and copy to struct if so
+	if (divider == 0)
+	{
+		processgps();		// see if gps receive packet available and copy to struct if so
+		divider = 1;
+	}
+	else
+	{
+		divider = 0;
+		processnex();		// see if the nextion LCD has sent anything
+	}
+
 }
 
 volatile uint64_t m1sectimer = 0;		// global 1mS tick count (64 bits)

@@ -277,6 +277,9 @@
     <Compile Include="include\usart_basic.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="ladder.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="neo7m.c">
       <SubType>compile</SubType>
     </Compile>

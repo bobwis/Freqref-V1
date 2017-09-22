@@ -49,6 +49,7 @@ C_SRCS +=  \
 ../examples/src/nvmctrl_basic_example.c \
 ../examples/src/spi_basic_example.c \
 ../examples/src/usart_basic_example.c \
+../ladder.c \
 ../neo7m.c \
 ../nextion.c \
 ../src/driver_init.c \
@@ -73,6 +74,7 @@ atmel_start.o \
 examples/src/nvmctrl_basic_example.o \
 examples/src/spi_basic_example.o \
 examples/src/usart_basic_example.o \
+ladder.o \
 neo7m.o \
 nextion.o \
 src/driver_init.o \
@@ -90,6 +92,7 @@ atmel_start.o \
 examples/src/nvmctrl_basic_example.o \
 examples/src/spi_basic_example.o \
 examples/src/usart_basic_example.o \
+ladder.o \
 neo7m.o \
 nextion.o \
 src/driver_init.o \
@@ -107,6 +110,7 @@ atmel_start.d \
 examples/src/nvmctrl_basic_example.d \
 examples/src/spi_basic_example.d \
 examples/src/usart_basic_example.d \
+ladder.d \
 neo7m.d \
 nextion.d \
 src/driver_init.d \
@@ -124,6 +128,7 @@ atmel_start.d \
 examples/src/nvmctrl_basic_example.d \
 examples/src/spi_basic_example.d \
 examples/src/usart_basic_example.d \
+ladder.d \
 neo7m.d \
 nextion.d \
 src/driver_init.d \
@@ -150,6 +155,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 
