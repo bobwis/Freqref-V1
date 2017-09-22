@@ -10,7 +10,7 @@
 #define LADDER_H_
 
 // the lcd menu system
-extern void ladder(void);
+extern uint8_t ladder(void);
 
 
 

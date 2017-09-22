@@ -9,17 +9,14 @@
 #ifndef TIMEUTILS_H_
 #define TIMEUTILS_H_
 
-extern volatile uint16_t m4sectimer;		// global 4.096mS tick count (16 bits)
-extern volatile uint64_t m1sectimer;		// global 1mS tick count (64 bits)
+extern volatile uint16_t timer1;		// global 4.096mS tick down count (16 bits) used in fastdelay_ms(uint16_t count)
+extern volatile uint16_t timer2;		// global 4.096mS tick down count (16 bits) used in lcd
+extern volatile uint16_t timer3;		// global 4.096mS tick down count (16 bits) used in main
+extern volatile uint64_t m1sectimer;		// global 1mS tick up count (64 bits)
 
 
 // read the 64 bit mSec counter
 extern uint64_t msectime(void);
-
-
-// read the 16 bit 4mSec counter
-extern uint16_t fastmsectime(void);
-
 
 // Uses Hardware timer 5 which is set to 1mS interrupt
 // delay will be 0 < 1mSec for parameter of 1, 1mS < 2mS for parameter of 2 etc
@@ -30,5 +27,10 @@ extern void delay_ms(uint16_t count);
 // delay will be 0 < 4.096mS for parameter of 1
 extern void fastdelay_ms(uint16_t count);
 
+// set software timer 2
+extern void settimer2(uint16_t);
+
+// set software timer 3
+extern void settimer3(uint16_t);
 
 #endif /* TIMEUTILS_H_ */

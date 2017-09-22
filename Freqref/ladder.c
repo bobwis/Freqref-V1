@@ -13,7 +13,8 @@
 #define TOP	0
 // This is the LCD state machine ladder to control
 // User input and display output
-void ladder(void)
+// returns current LCD page
+uint8_t ladder(void)
 {
 	static uint8_t pstate = 0;			// page state variable
 
@@ -91,4 +92,6 @@ void ladder(void)
 		}
 		lcdevent = 0;		// inactive
 	}
+
+	return(pstate);
 }

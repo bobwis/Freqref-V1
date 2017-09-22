@@ -54,7 +54,10 @@
 #include <driver_init.h>
 #include <compiler.h>
 
-volatile uint16_t m4sectimer = 0;		// global 4.096mS tick count (16 bits)
+volatile uint16_t timer1 = 0;		// global 4.096mS tick down count (16 bits) - used in 
+volatile uint16_t timer2 = 0;		// global 4.096mS tick down count (16 bits)
+volatile uint16_t timer3 = 0;		// global 4.096mS tick down count (16 bits)
+
 extern void processgps(void);
 extern void processnex(void);
 
@@ -63,9 +66,16 @@ ISR(TIMER4_COMPA_vect)
 static uint8_t divider = 0;
 
 	/* Insert your TIMER_0 compare channel A interrupt handling code here */
-	m4sectimer++;
+	if (timer1)
+		timer1--;
 
-	if (divider == 0)
+	if (timer2)
+		timer2--;
+
+	if (timer3)
+		timer3--;
+
+	if (divider == 0)		// alternate duties per 4ms interrupt
 	{
 		processgps();		// see if gps receive packet available and copy to struct if so
 		divider = 1;

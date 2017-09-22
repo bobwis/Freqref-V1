@@ -92,7 +92,7 @@ static struct /*UbxGps*/ {
 	// Function, printing packet to the PC's serial in hexadecimal form
 	void printPacket(byte *packet, byte len) {
 		char temp[3];
-
+#if 0
 		for (byte i = 0; i < len; i++) {
 			if(i%16==0)
 			{
@@ -107,6 +107,7 @@ static struct /*UbxGps*/ {
 
 		}
 		printf("\n\r");
+#endif
 	}
 
 	// Function, sending specified packed to the GPS receiver
@@ -355,7 +356,7 @@ static struct /*UbxGps*/ {
 		while (USART_1_is_rx_ready())
 		{
 			data = USART_1_read();
-			#ifdef UCENTRE
+#ifdef UCENTRE
 			USART_3_write(data);
 			while (USART_3_is_rx_ready())
 			{
@@ -363,7 +364,7 @@ static struct /*UbxGps*/ {
 				ch = USART_3_read();
 				USART_1_write(ch);
 			}
-			#endif
+#endif
 			if(IsPacketReady(data))
 			{
 				for(unsigned int i = offset; i<sizeof(NavPvt); i++)
@@ -430,9 +431,9 @@ static struct /*UbxGps*/ {
 	{
 		
 		// Disabling NMEA messages by sending appropriate packets
-		printf("Disabling NMEA messages...\n\r");
+//		printf("Disabling NMEA messages...\n\r");
 		disableNmea();
-		#if 0
+#if 0
 		// Switching receiver's serial to the wanted baudrate
 		if (GPS_WANTED_BAUDRATE != GPS_DEFAULT_BAUDRATE) {
 			printf("Switching receiver to the wanted baudrate which is ");
@@ -443,20 +444,20 @@ static struct /*UbxGps*/ {
 
 			fastdelay_ms(100); // Little delay before flushing
 		}
-		#endif
+#endif
 		// 	Set reporting frequency to 1 Sec
-		printf("Changing receiving frequency to 1 Sec...\n\r");
+//		printf("Changing receiving frequency to 1 Sec...\n\r");
 		changeFrequency();
 
 		// Disabling unnecessary channels like SBAS or QZSS
-		printf("Disabling unnecessary channels...\r\n");
+//		printf("Disabling unnecessary channels...\r\n");
 		disableUnnecessaryChannels();
 
 		// Enabling NAV-PVT messages
-		printf("Enabling NAV-PVT messages...\n\r");
+//		printf("Enabling NAV-PVT messages...\n\r");
 		enableNavPvt();
 
-		printf("Auto-configuration is complete!\n\r");
+//		printf("Auto-configuration is complete!\n\r");
 
-		fastdelay_ms(100); // Little delay before flushing
+//		fastdelay_ms(100); // Little delay before flushing
 	}

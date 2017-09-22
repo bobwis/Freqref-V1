@@ -44,6 +44,7 @@ void writelcdcmd(char *str)
 	{
 		USART_2_write(0xff);
 	}
+	lcdstatus = 0xff;			// arm response variable - 0xff is unused status code
 
 }
 
@@ -59,27 +60,26 @@ void setndig(char *id, uint8_t val)
 
 // read the response to a command from the lcd
 // returns 0xff on timeout, busy wait
+// assumes 	lcdstatus = 0xff prior to call	
 unsigned char getlcdack()
 {
-	int result;
-	char buffer[8];
-	unsigned int now;
 
-	lcdstatus = 0xff;
-	now = fastmsectime();
+	settimer2(1000/4);
 //	printf("waiting for lcd status\n\r");
-	while((lcdstatus == 0xff) && (fastmsectime() < (now + (1000/4))))
+	while((lcdstatus == 0xff) && (timer2))
 	{
-		;// wait for lcd rx interrupt service to get something
+		;  // wait for lcd rx interrupt service to get something
 	}
 	if (lcdstatus == 0xff)
 	{
 		printf("Timeout waiting for LCD response\n\r");
 	}
+#if 0
 	else
 	{
-//		printf("lcd status %02x\n\r",lcdstatus);
+		printf("lcd status %02x\n\r",lcdstatus);
 	}
+#endif
 	return(lcdstatus);
 }
 
@@ -87,13 +87,11 @@ unsigned char getlcdack()
 // return -1 for error
 char getlcdpage()
 {
-	unsigned char buffer[16] = "";
-	unsigned char j;
 
 	writelcdcmd("sendme");
 	if (getlcdack() == 0xff)			// wait for response
 	{
-
+		printf("No response from getlcdpage cmd\n\r");
 	}
 	if (lcdrxbuffer[0] == 0x66)		// 'page id' response
 	{
@@ -163,7 +161,6 @@ int isnexpkt(unsigned char buffer[],uint8_t size)
 // **** NOTE ****  This is called from within Timer 4 Interrupt Service Routine every 4.096mS
 extern void processnex(void)
 {
-	unsigned char data;
 
 	while (USART_2_is_rx_ready())		// data in the rx buffer
 	{
