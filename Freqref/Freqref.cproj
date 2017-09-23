@@ -229,6 +229,12 @@
     <Compile Include="Config\clock_config.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="dds.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="dds.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="examples\include\nvmctrl_basic_example.h">
       <SubType>compile</SubType>
     </Compile>

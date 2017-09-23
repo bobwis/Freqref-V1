@@ -4,6 +4,7 @@
 #include "neo7m.h"
 #include "nextion.h"
 #include "ladder.h"
+#include "dds.h"
 
 
 void displayclock()
@@ -48,27 +49,38 @@ void displayclock()
 int main(void)
 {
 	uint8_t pageindex;
-	uint64_t now;
+	char result;
 
 	/* Initializes MCU, drivers and middleware */
 	atmel_start_init();
 	sei();
 
+	printf("----------------------------\n\r");
 	printf("Hello World\n\r");
 	setupneo();
-	printf("Neo7 setup returned\n\r");
+//	printf("Neo7 setup returned\n\r");
 
 	setlcdpage("top",true);
 	pageindex = getlcdpage();		// get current page
 
 	// main loop to process all the modules
 
-	settimer3(100/4);
+	result = getlcdnvar("dds.ddsfreq.val",&ddsfreq);
+	if (result == NEX_ENUM)
+	{
+		printf("dds frequency = %ld\n\r",ddsfreq);
+	}
+	else
+	{
+		printf("dds frequency not found\n\r");
+	}
+
+	settimer3(200/4);
 	while(1)
 	{
 		if (timer3 == 0)		// timeout 
 		{
-			settimer3(100/4);
+			settimer3(200/4);
 			if (pageindex == 0)
 			{
 				displayclock();
@@ -79,5 +91,4 @@ int main(void)
 
 	printf("Goodbye World\n\r");
 	/* Replace with your application code */
-
 }

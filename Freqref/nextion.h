@@ -10,8 +10,10 @@
 #define NEXTION_H_
 
 volatile extern uint8_t	lcdstatus;
-volatile extern uint8_t lcdevent;
+volatile extern uint8_t lcdtouched;
 extern unsigned char lcdrxbuffer[32];
+volatile extern uint8_t lcdpevent;		// lcd reported a page. set to 0xff for new report
+volatile extern uint8_t pagenum;		// binary LCD page number 
 
 // try to get one packet from the LCD
 extern void decodelcd(void);
@@ -20,10 +22,14 @@ extern void decodelcd(void);
 extern void setndig(char *, uint8_t);
 
 // interrogate the lcd for its current display page
-char getlcdpage(void);
+uint8_t getlcdpage(void);
 
 // display a chosen page
 extern void setlcdpage(char *, bool);
+
+// read a lcd named variable (unsigned long) expects numeric value
+// return -1 for error
+extern char getlcdnvar(char *, unsigned long *);
 
 #endif /* NEXTION_H_ */
 
@@ -51,7 +57,7 @@ extern void setlcdpage(char *, bool);
 #define NEX_EPAGE	0x66	// Current Page ID from sendme cmd
 #define NEX_ECOOR	0x67	// Touch coord data event
 #define NEX_ETSLP	0x68	// Touch event in sleep mode
-#define NEX_ESTR	0x70	// String variable data returnsTouch event
+#define NEX_ESTR	0x70	// String variable data returns
 #define NEX_ENUM	0x71	// Numeric variable dat returns
 #define NEX_ESLEEP	0x86	// Device entered auto sleep
 #define NEX_EWAKE	0x87	// Device automatically woke up

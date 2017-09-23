@@ -15,11 +15,13 @@
 #include "nextion.h"
 
 
-char currentpage[16] = {""};
-unsigned char lcdrxbuffer[32] = {""};
-volatile uint8_t lcdstatus = 0;
-volatile uint8_t lcdevent = 0;
+char currentpage[16] = {""};	
+volatile uint8_t pagenum = 0;		// binary LCD page number 
 
+unsigned char lcdrxbuffer[32] = {""};
+volatile uint8_t lcdstatus = 0;		// response code, set to 0xff for not set
+volatile uint8_t lcdtouched = 0;		// this gets set to 0xff when an autonomous event or cmd reply happens
+volatile uint8_t lcdpevent = 0;		// lcd reported a page. set to 0xff for new report
 
 // send a string to the LCD (len max 255)
 void writelcd(char *str)
@@ -63,7 +65,6 @@ void setndig(char *id, uint8_t val)
 // assumes 	lcdstatus = 0xff prior to call	
 unsigned char getlcdack()
 {
-
 	settimer2(1000/4);
 //	printf("waiting for lcd status\n\r");
 	while((lcdstatus == 0xff) && (timer2))
@@ -83,22 +84,52 @@ unsigned char getlcdack()
 	return(lcdstatus);
 }
 
-// find the current lcd page (char as int8)
+// read a lcd named variable (unsigned long) expects numeric value
 // return -1 for error
-char getlcdpage()
+ char getlcdnvar(char * id, unsigned long *data)
 {
+	writelcd("get ");
+	writelcdcmd(id);
+	if (getlcdack() == 0xff)			// wait for response
+	{
+		printf("No response from getlcdnvar cmd\n\r");
+	}
+	if (lcdrxbuffer[0] == NEX_ENUM)		// numeric response: 4 bytes following
+	{
+		*data = *(unsigned long *)&lcdrxbuffer[1];
+//		printf("getlcdnvar returned %li\n\r",*data);
+		return(lcdrxbuffer[0]);
+	}
+	else
+	{
+		if (lcdrxbuffer[0] == NEX_SVAR)		// Variable Name Invalid
+		{
+				printf("getlcdnvar: var name %s invalid\n\r",id);
+		}
+	}
+	return(-1);
+}
 
+// find the current lcd page (char as int8)
+// this is processed mostly by the ISR, this routine assumes success
+// return -1 for error
+uint8_t getlcdpage()
+{
 	writelcdcmd("sendme");
 	if (getlcdack() == 0xff)			// wait for response
 	{
 		printf("No response from getlcdpage cmd\n\r");
 	}
-	if (lcdrxbuffer[0] == 0x66)		// 'page id' response
+#if 0
+	if (lcdrxbuffer[0] == NEX_EPAGE)		// 'page id' response
 	{
 //		printf("we are on page %i\n\r",lcdrxbuffer[1]);
 		return(lcdrxbuffer[1]);
 	}
 	return(-1);
+#else
+	return(pagenum);
+#endif
 }
 
 // display a chosen page
@@ -113,6 +144,7 @@ void setlcdpage(char *pagename, bool force)
 			writelcd("page ");
 			writelcdcmd(pagename);
 			strncpy(currentpage,pagename,sizeof(currentpage));
+			pagenum = getlcdpage();		// associate with its number
 		}
 	}
 	return;
@@ -127,7 +159,6 @@ int isnexpkt(unsigned char buffer[],uint8_t size)
 	static uint8_t i = 0;
 	int index;
 	unsigned char ch;
-
 
 	ch = USART_2_read();
 	buffer[i++] = ch;
@@ -171,16 +202,24 @@ extern void processnex(void)
 		else // got a packet
 		{
 			lcdstatus = lcdrxbuffer[0];
-			if ((lcdrxbuffer[0] >= NEX_SINV) && (lcdrxbuffer[0] < NEX_SLEN))	// a status code packet
+			if ((lcdrxbuffer[0] >= NEX_SINV) && (lcdrxbuffer[0] <= NEX_SLEN))	// a status code packet - eg error
 			{
-				lcdevent = 0;
+				lcdtouched = 0;
 				printf("LCDstat %02x\n\r",lcdrxbuffer[0]);
 			}
-			else  // this is an 'touch event' type of packet
+			else  // this is either a touch event or a response to a query packet
 			{
-				lcdevent = 0xff;
-				if (lcdrxbuffer[0] != 0x66)
-					printf("LCDtouch %02x\n\r",lcdrxbuffer[0]);
+				if (lcdrxbuffer[0] == NEX_ETOUCH)
+				{
+					lcdtouched = 0xff;		// its a touch
+				}
+				else  
+				if (lcdrxbuffer[0] == NEX_EPAGE)		// its either an autonomous or requested current page response
+				{
+					lcdtouched = 0;
+					lcdpevent = 0xff;		// notify lcd page event happened
+					pagenum = lcdrxbuffer[1];
+				}
 			}
 		}
 	}

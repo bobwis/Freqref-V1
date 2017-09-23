@@ -5,93 +5,68 @@
 *  Author: bob
 */
 
+#include <stdio.h>
 #include "timeutils.h"
 #include "neo7m.h"
 #include "nextion.h"
-#include <stdio.h>
+#include "dds.h"
 
-#define TOP	0
-// This is the LCD state machine ladder to control
+
+
+// read the dds frequency variable from the LCD
+// store the result in the global
+void getddsfreq()
+{
+	uint8_t result;
+
+	result = getlcdnvar("dds.ddsfreq.val",&ddsfreq);
+	if (result == NEX_ENUM)
+	{
+		printf("dds frequency = %ld\n\r",ddsfreq);
+	}
+	else
+	{
+		printf("dds frequency not found\n\r");
+	}
+}
+
+
+// comes here on a lcd touch
+void lcdtouch()
+{
+	lcdtouched = 0;		// inactive
+	printf("lcdtouched: page %d button %d, %02x\n\r",lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
+
+	if ((lcdrxbuffer[1] == 4) && (lcdrxbuffer[2] == 13))		// DDS main page, the enter button
+	{
+		getddsfreq();
+	}
+
+}
+
+// This is the LCD  ladder to control
 // User input and display output
 // returns current LCD page
 uint8_t ladder(void)
 {
 	static uint8_t pstate = 0;			// page state variable
 
-	pstate = getlcdpage();		// get current page
+	pstate = pagenum;		// get current page
 
-	if (lcdevent == 0xff)		// some event to deal with
+	if (lcdtouched == 0xff)		// a touch event to deal with
 	{
-		switch(pstate) {
-
-			// lcd page 0 (top)
-			case 0:
-			//		printf("state %d\n\r",pstate);
-			if (lcdstatus == 0x65)		// button pressed
-			{
-				printf("pstate %d, page %d button %d, %02x\n\r",pstate,lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
-			}
-			break;
-
-			// lcd page 1 gps status
-			case 1:
-			if (lcdstatus == 0x65)		// button pressed
-			{
-				printf("pstate %d, page %d button %d, %02x\n\r",pstate,lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
-			}
-			break;
-
-			// lcd page 2 ocxo status
-			case 2:
-			if (lcdstatus == 0x65)		// button pressed
-			{
-				printf("pstate %d, page %d button %d, %02x\n\r",pstate,lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
-			}
-			break;
-
-			// lcd page 3 dds
-			case 3:
-			if (lcdstatus == 0x65)		// button pressed
-			{
-				printf("pstate %d, page %d button %d, %02x\n\r",pstate,lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
-			}
-			break;
-
-			// lcd page 4 fpad
-			case 4:
-			if (lcdstatus == 0x65)		// button pressed
-			{
-				printf("pstate %d, page %d button %d, %02x\n\r",pstate,lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
-			}
-			break;
-
-			// lcd page 5 fadj
-			case 5:
-			if (lcdstatus == 0x65)		// button pressed
-			{
-				printf("pstate %d, page %d button %d, %02x\n\r",pstate,lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
-			}
-			else
-			if (lcdstatus == 0x66)		// page index sent - means updated
-			{
-				printf("pstate %d, page %d pageid %d, %02x\n\r",pstate,lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
-			}
-			break;
-
-			// lcd page 6 debug
-			case 6:
-			if (lcdstatus == 0x65)		// button pressed
-			{
-				printf("pstate %d, page %d button %d, %02x\n\r",pstate,lcdrxbuffer[1],lcdrxbuffer[2],lcdrxbuffer[3]);
-			}
-			break;
-
-			default:
-			printf("pstate default 0x%02x\n\r",pstate);
-			break;
-		}
-		lcdevent = 0;		// inactive
+		lcdtouch();
 	}
 
+	if (lcdpevent == 0xff)	// lcd sent a page event
+	{
+		lcdpevent = 0;		// inactive
+		printf("pevent: %d, page %d\n\r",pstate,lcdrxbuffer[1]);
+
+		if (lcdrxbuffer[1] == 5)		// DDS Up/Down screen
+		{
+			getddsfreq();				// probably changing it
+		}
+	}
 	return(pstate);
 }
