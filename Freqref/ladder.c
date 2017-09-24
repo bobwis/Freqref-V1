@@ -59,8 +59,14 @@ void drawgps()
 {
 char buffer[64];
 char *valstr;
-char *flagstr[6] = {"Power Save","Enabled not acquired","Acquisition","Tracking","Power Optimised Tracking","Inactive"};
+signed int latdeg, londeg, scale;
+signed long latfrac, lonfrac;
+unsigned long lat, lon;
+unsigned char trk;
+unsigned int col;
 
+char *flagstr[6] = {"Not Power Save Mode","Enabled not acquired","Acquisition","Tracking","Power Optimised Tracking","Inactive"};
+char *tracking[2] = {"No FIX","Valid FIX"};
 	
 	switch (NavPvt.valid & 0x07)
 	{
@@ -71,8 +77,54 @@ char *flagstr[6] = {"Power Save","Enabled not acquired","Acquisition","Tracking"
 			valstr = "UTC acquiring";
 			break;
 	}
-	sprintf(buffer,"%s, %s",valstr,flagstr[NavPvt.flags >> 2]);	
-	setlcdtext("gps.t0.txt",buffer);
+
+	trk = (NavPvt.flags & 1);			// Fix flag
+
+	sprintf(buffer,"%s, %s, %s",valstr,flagstr[NavPvt.flags >> 2],tracking[trk]);	
+	setlcdtext("gps.g0.txt",buffer);
+
+	lat = (NavPvt.lat < 0L) ? -NavPvt.lat : NavPvt.lat;
+	lon = (NavPvt.lon < 0L) ? -NavPvt.lon : NavPvt.lon;
+
+	latdeg = lat / 10000000L;
+	londeg = lon / 10000000L;
+
+	latfrac = lat - (latdeg * 10000000L);
+	lonfrac = lon - (londeg * 10000000L);
+
+	if (NavPvt.lat < 0L)
+		latdeg = -latdeg;
+	if (NavPvt.lon < 0L)
+		londeg = -londeg;
+
+	sprintf(buffer,"%d.%lu %d.%lu",latdeg,latfrac,londeg,lonfrac);
+	setlcdtext("gps.t1.txt",buffer);
+
+	sprintf(buffer,"%lum",NavPvt.height/1000);
+	setlcdtext("gps.t4.txt",buffer);
+
+	sprintf(buffer,"Sats: %02u",NavPvt.numSV);
+	setlcdtext("gps.t2.txt",buffer);
+
+	col = NEX_CRED;
+	if (NavPvt.numSV > 9)
+	col = NEX_CYELLOW;
+	else
+	if (NavPvt.numSV > 3)
+		col = NEX_CYELLOW;
+
+	sprintf(buffer,"%u",col);
+	setlcdnum("gps.j0.pco",buffer);
+
+	scale = (NavPvt.numSV<<2)+(NavPvt.numSV<<1);		// for the bargraph
+	if (scale > 255)
+		scale = 255;
+	sprintf(buffer,"%d",(uint8_t)scale);
+	setlcdnum("gps.j0.val",buffer);
+
+	sprintf(buffer,"%du",(unsigned)NavPvt.tAcc & 0xffff);
+	setlcdtext("gps.t3.txt",buffer);
+
 }
 
 // populate the ocxo screen

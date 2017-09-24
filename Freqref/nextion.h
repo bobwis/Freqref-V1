@@ -34,6 +34,9 @@ extern char getlcdnvar(char *, unsigned long *);
 // write to a text object
 void setlcdtext(char *, char *);
 
+// send some numbers to a lcd obj.val object
+void setlcdnum(char *, char *);
+
 //write a lcd cmd
 void writelcdcmd(char *);
 

@@ -120,6 +120,14 @@ void setlcdtext(char id[], char string[])
 	writelcdcmd("\"");
 }
 
+// send some numbers to a lcd obj.val object
+void setlcdnum(char id[], char string[])
+{
+//printf("%s=%s",id,string);
+	writelcd(id);
+	writelcd("=");
+	writelcdcmd(string);
+}
 
 // find the current lcd page (char as int8)
 // this is processed mostly by the ISR, this routine assumes success
