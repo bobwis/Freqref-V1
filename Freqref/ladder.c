@@ -12,6 +12,93 @@
 #include "dds.h"
 
 
+#define TIMED true
+#define RANDOM false
+
+void displayclock()
+{
+	unsigned char est;
+	static uint8_t last[6] = {0xff,0xff,0xff,0xff,0xff,0xff};		// last time cache
+
+	est = (NavPvt.hour + 10) % 24;
+
+	if (last[0] != est/10)		// hour
+	{
+		setndig("top.n1",est/10);
+		last[0] = est/10;
+	}
+	if (last[1] != est/10)		// hour
+	{
+		setndig("top.n2",est%10);
+		last[1] = est%10;
+	}
+	if (last[2] != NavPvt.min/10)		// min
+	{
+		setndig("top.n3",NavPvt.min/10);
+		last[2] = NavPvt.min/10;
+	}
+	if (last[3] != NavPvt.min%10)		// min
+	{
+		setndig("top.n4",NavPvt.min%10);
+		last[3] = NavPvt.min%10;
+	}
+	if (last[4] != NavPvt.sec/10)		// sec
+	{
+		setndig("top.n5",NavPvt.sec/10);
+		last[4] = NavPvt.sec/10;
+	}
+	if (last[5] != NavPvt.sec%10)		// sec
+	{
+		setndig("top.n6",NavPvt.sec%10);
+		last[5] = NavPvt.sec%10;
+	}
+}
+
+// populate the gps screen
+void drawgps()
+{
+char buffer[64];
+char *valstr;
+char *flagstr[6] = {"Power Save","Enabled not acquired","Acquisition","Tracking","Power Optimised Tracking","Inactive"};
+
+	
+	switch (NavPvt.valid & 0x07)
+	{
+		case 7:
+			valstr = "UTC locked";
+			break;
+		default:
+			valstr = "UTC acquiring";
+			break;
+	}
+	sprintf(buffer,"%s, %s",valstr,flagstr[NavPvt.flags >> 2]);	
+	setlcdtext("gps.t0.txt",buffer);
+}
+
+// populate the ocxo screen
+void drawocxo()
+{
+	// setlcdtext("gps.t0.txt","hello world");
+}
+
+
+// populate the dds top screen
+void drawddstop()
+{
+	// setlcdtext("gps.t0.txt","hello world");
+}
+
+// populate the dds keypad screen
+void ddskeypad()
+{
+	// setlcdtext("gps.t0.txt","hello world");
+}
+
+// populate the debug screen
+void drawdebug()
+{
+	// setlcdtext("gps.t0.txt","hello world");
+}
 
 // read the dds frequency variable from the LCD
 // store the result in the global
@@ -22,7 +109,7 @@ void getddsfreq()
 	result = getlcdnvar("dds.ddsfreq.val",&ddsfreq);
 	if (result == NEX_ENUM)
 	{
-		printf("dds frequency = %ld\n\r",ddsfreq);
+		printf("dds frequency = %lu\n\r",ddsfreq);
 	}
 	else
 	{
@@ -41,32 +128,74 @@ void lcdtouch()
 	{
 		getddsfreq();
 	}
-
 }
 
-// This is the LCD  ladder to control
-// User input and display output
-// returns current LCD page
-uint8_t ladder(void)
+
+// comes here on a lcd page event
+// or a timed refresh event
+void lcdpageevent(bool timed)
 {
-	static uint8_t pstate = 0;			// page state variable
+	lcdpevent = 0;		// inactive
 
-	pstate = pagenum;		// get current page
+//	printf("lcdpage: page %d\n\r",pagenum);
 
-	if (lcdtouched == 0xff)		// a touch event to deal with
+	switch(pagenum)
 	{
-		lcdtouch();
-	}
+		case 0:		// Top screen
+			displayclock();
+		break;
 
-	if (lcdpevent == 0xff)	// lcd sent a page event
-	{
-		lcdpevent = 0;		// inactive
-		printf("pevent: %d, page %d\n\r",pstate,lcdrxbuffer[1]);
+		case 1:		// GPS screen
+			drawgps();
+		break;
 
-		if (lcdrxbuffer[1] == 5)		// DDS Up/Down screen
-		{
-			getddsfreq();				// probably changing it
-		}
+		case 2:		// OCXO screen
+			drawocxo();
+		break;
+
+		case 3:		// DDS top menu
+			drawddstop();
+		break;
+
+		case 4:		// DDS keypad
+			ddskeypad();
+		break;
+
+		case 5:		// DDS up/down screen
+			getddsfreq();	
+		break;
+
+		case 6:		// debug screen
+			drawdebug();
+		break;
+
+		default:
+			printf("invalid lcd page sent\n\r");
+		break;
+
 	}
-	return(pstate);
 }
+
+
+	// This is the LCD  ladder to control
+	// User input and display output
+	// returns current LCD page
+	void ladder(void)
+	{
+		if (lcdtouched == 0xff)		// a touch event to deal with
+		{
+			lcdtouch();
+		}
+
+		if (lcdpevent == 0xff)	// lcd sent a page event
+		{
+			lcdpageevent(RANDOM);
+		}
+
+		if (timer3 == 0)		// timeout
+		{
+			lcdpageevent(TIMED);		// so refresh the page anyway
+			settimer3(200/4);
+		}
+		return;
+	}

@@ -31,6 +31,12 @@ extern void setlcdpage(char *, bool);
 // return -1 for error
 extern char getlcdnvar(char *, unsigned long *);
 
+// write to a text object
+void setlcdtext(char *, char *);
+
+//write a lcd cmd
+void writelcdcmd(char *);
+
 #endif /* NEXTION_H_ */
 
 // Nextion return status codes

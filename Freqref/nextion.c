@@ -30,7 +30,7 @@ void writelcd(char *str)
 	
 	while (str[i])
 	{
-		//		USART_3_write(str[i]);
+		//USART_3_write(str[i]);
 		USART_2_write(str[i++]);
 	}
 }
@@ -110,26 +110,29 @@ unsigned char getlcdack()
 	return(-1);
 }
 
+
+// send some text to a lcd text object
+void setlcdtext(char id[], char string[])
+{
+	writelcd(id);
+	writelcd("=\"");
+	writelcd(string);
+	writelcdcmd("\"");
+}
+
+
 // find the current lcd page (char as int8)
 // this is processed mostly by the ISR, this routine assumes success
 // return -1 for error
 uint8_t getlcdpage()
 {
+printf("getpg\n\r");
 	writelcdcmd("sendme");
 	if (getlcdack() == 0xff)			// wait for response
 	{
 		printf("No response from getlcdpage cmd\n\r");
 	}
-#if 0
-	if (lcdrxbuffer[0] == NEX_EPAGE)		// 'page id' response
-	{
-//		printf("we are on page %i\n\r",lcdrxbuffer[1]);
-		return(lcdrxbuffer[1]);
-	}
-	return(-1);
-#else
 	return(pagenum);
-#endif
 }
 
 // display a chosen page
@@ -144,6 +147,8 @@ void setlcdpage(char *pagename, bool force)
 			writelcd("page ");
 			writelcdcmd(pagename);
 			strncpy(currentpage,pagename,sizeof(currentpage));
+			getlcdack();
+			fastdelay_ms(1000/4);	// wait for page to activate
 			pagenum = getlcdpage();		// associate with its number
 		}
 	}
@@ -192,7 +197,6 @@ int isnexpkt(unsigned char buffer[],uint8_t size)
 // **** NOTE ****  This is called from within Timer 4 Interrupt Service Routine every 4.096mS
 extern void processnex(void)
 {
-
 	while (USART_2_is_rx_ready())		// data in the rx buffer
 	{
 		if(isnexpkt(lcdrxbuffer,sizeof(lcdrxbuffer)) == -1)
@@ -205,13 +209,15 @@ extern void processnex(void)
 			if ((lcdrxbuffer[0] >= NEX_SINV) && (lcdrxbuffer[0] <= NEX_SLEN))	// a status code packet - eg error
 			{
 				lcdtouched = 0;
-				printf("LCDstat %02x\n\r",lcdrxbuffer[0]);
+				lcdpevent = 0;
+				printf("Err? LCD 0x%02x\n\r",lcdrxbuffer[0]);
 			}
 			else  // this is either a touch event or a response to a query packet
 			{
 				if (lcdrxbuffer[0] == NEX_ETOUCH)
 				{
 					lcdtouched = 0xff;		// its a touch
+					lcdpevent = 0;
 				}
 				else  
 				if (lcdrxbuffer[0] == NEX_EPAGE)		// its either an autonomous or requested current page response
@@ -223,5 +229,4 @@ extern void processnex(void)
 			}
 		}
 	}
-
 }
