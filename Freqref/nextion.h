@@ -83,3 +83,12 @@ void writelcdcmd(char *);
 #define NEX_CGREEN	2016	// Green
 #define NEX_CBROWN 	48192 	// Brown
 #define NEX_CYELLOW 65504 	// Yellow
+
+#define NEX_TRED 	"63488"	// Red
+#define NEX_TBLUE 	"31"		// Blue
+#define NEX_TGREY 	"33840"	// Gray
+#define NEX_TBLACK	"0"		// Black
+#define NEX_TWHITE	"65535"	// White
+#define NEX_TGREEN	"2016"	// Green
+#define NEX_TBROWN 	"48192" 	// Brown
+#define NEX_TYELLOW "65504" 	// Yellow

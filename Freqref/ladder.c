@@ -57,30 +57,30 @@ void displayclock()
 // populate the gps screen
 void drawgps()
 {
-char buffer[64];
-char *valstr;
-signed int latdeg, londeg, scale;
-signed long latfrac, lonfrac;
-unsigned long lat, lon;
-unsigned char trk;
-unsigned int col;
+	char buffer[64];
+	char *valstr;
+	signed int latdeg, londeg, scale;
+	signed long latfrac, lonfrac;
+	unsigned long lat, lon;
+	unsigned char trk;
+	char *col;
 
-char *flagstr[6] = {"Not Power Save Mode","Enabled not acquired","Acquisition","Tracking","Power Optimised Tracking","Inactive"};
-char *tracking[2] = {"No FIX","Valid FIX"};
+	char *flagstr[6] = {"Full Power Mode","Enabled not acquired","Acquisition","Tracking","Power Optimised Tracking","Inactive"};
+	char *tracking[2] = {"No FIX","Valid FIX"};
 	
 	switch (NavPvt.valid & 0x07)
 	{
 		case 7:
-			valstr = "UTC locked";
-			break;
+		valstr = "UTC locked";
+		break;
 		default:
-			valstr = "UTC acquiring";
-			break;
+		valstr = "UTC acquiring";
+		break;
 	}
 
 	trk = (NavPvt.flags & 1);			// Fix flag
 
-	sprintf(buffer,"%s, %s, %s",valstr,flagstr[NavPvt.flags >> 2],tracking[trk]);	
+	sprintf(buffer,"%s, %s, %s",valstr,flagstr[NavPvt.flags >> 2],tracking[trk]);
 	setlcdtext("gps.g0.txt",buffer);
 
 	lat = (NavPvt.lat < 0L) ? -NavPvt.lat : NavPvt.lat;
@@ -93,9 +93,9 @@ char *tracking[2] = {"No FIX","Valid FIX"};
 	lonfrac = lon - (londeg * 10000000L);
 
 	if (NavPvt.lat < 0L)
-		latdeg = -latdeg;
+	latdeg = -latdeg;
 	if (NavPvt.lon < 0L)
-		londeg = -londeg;
+	londeg = -londeg;
 
 	sprintf(buffer,"%d.%lu %d.%lu",latdeg,latfrac,londeg,lonfrac);
 	setlcdtext("gps.t1.txt",buffer);
@@ -106,19 +106,18 @@ char *tracking[2] = {"No FIX","Valid FIX"};
 	sprintf(buffer,"Sats: %02u",NavPvt.numSV);
 	setlcdtext("gps.t2.txt",buffer);
 
-	col = NEX_CRED;
+	col = NEX_TRED;
 	if (NavPvt.numSV > 9)
-	col = NEX_CYELLOW;
+	col = NEX_TGREEN;
 	else
 	if (NavPvt.numSV > 3)
-		col = NEX_CYELLOW;
+	col = NEX_TYELLOW;
 
-	sprintf(buffer,"%u",col);
-	setlcdnum("gps.j0.pco",buffer);
+	setlcdnum("gps.j0.pco",col);
 
 	scale = (NavPvt.numSV<<2)+(NavPvt.numSV<<1);		// for the bargraph
 	if (scale > 255)
-		scale = 255;
+	scale = 255;
 	sprintf(buffer,"%d",(uint8_t)scale);
 	setlcdnum("gps.j0.val",buffer);
 
@@ -188,66 +187,81 @@ void lcdtouch()
 void lcdpageevent(bool timed)
 {
 	lcdpevent = 0;		// inactive
+	bool trig;
+	static uint8_t gps = 55 , warmup = 55, unlock = 55;
 
-//	printf("lcdpage: page %d\n\r",pagenum);
+	//	printf("lcdpage: page %d\n\r",pagenum);
 
 	switch(pagenum)
 	{
 		case 0:		// Top screen
-			displayclock();
+		displayclock();
+		trig = (NavPvt.flags & 1);	// GPS Fix flag
+		if (gps != trig)
+		{
+			gps = trig;
+			setlcdnum("top.t1.bco",(gps) ? NEX_TBLACK : NEX_TRED);
+		}
+
+		trig = (m1sectimer > /* (20L*60L*1000L) */ (60L*1000L));
+		if (trig != warmup)
+		{
+			warmup = trig;
+			setlcdnum("top.t2.bco",(warmup) ? NEX_TBLACK : NEX_TYELLOW);
+		}
+
 		break;
 
 		case 1:		// GPS screen
-			drawgps();
+		drawgps();
 		break;
 
 		case 2:		// OCXO screen
-			drawocxo();
+		drawocxo();
 		break;
 
 		case 3:		// DDS top menu
-			drawddstop();
+		drawddstop();
 		break;
 
 		case 4:		// DDS keypad
-			ddskeypad();
+		ddskeypad();
 		break;
 
 		case 5:		// DDS up/down screen
-			getddsfreq();	
+		getddsfreq();
 		break;
 
 		case 6:		// debug screen
-			drawdebug();
+		drawdebug();
 		break;
 
 		default:
-			printf("invalid lcd page sent\n\r");
+		printf("invalid lcd page sent\n\r");
 		break;
 
 	}
 }
 
 
-	// This is the LCD  ladder to control
-	// User input and display output
-	// returns current LCD page
-	void ladder(void)
+// This is the LCD  ladder to control
+// User input and display output
+void ladder(void)
+{
+	if (lcdtouched == 0xff)		// a touch event to deal with
 	{
-		if (lcdtouched == 0xff)		// a touch event to deal with
-		{
-			lcdtouch();
-		}
-
-		if (lcdpevent == 0xff)	// lcd sent a page event
-		{
-			lcdpageevent(RANDOM);
-		}
-
-		if (timer3 == 0)		// timeout
-		{
-			lcdpageevent(TIMED);		// so refresh the page anyway
-			settimer3(200/4);
-		}
-		return;
+		lcdtouch();
 	}
+
+	if (lcdpevent == 0xff)	// lcd sent a page event
+	{
+		lcdpageevent(RANDOM);
+	}
+
+	if (timer3 == 0)		// timeout
+	{
+		lcdpageevent(TIMED);		// so refresh the page anyway
+		settimer3(200/4);
+	}
+	return;
+}
