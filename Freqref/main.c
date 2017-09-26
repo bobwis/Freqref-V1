@@ -5,6 +5,8 @@
 #include "nextion.h"
 #include "ladder.h"
 #include "dds.h"
+#include "ocxo.h"
+
 
 int main(void)
 {
@@ -17,10 +19,16 @@ int main(void)
 	printf("----------------------------\n\r");
 	printf("Hello World\n\r");
 	setupneo();
-//	printf("Neo7 setup returned\n\r");
+	printf("Neo7 setup returned\n\r");
 
 	writelcdcmd("");		// null cmd to clear any partial cmd
 	setlcdpage("top",true);
+
+	printf("setup OCXO\n\r");
+	if (!(ocxoinit()))
+	{
+		printf("ocxo init failed\n\r");
+	}
 
 	result = getlcdnvar("dds.ddsfreq.val",&ddsfreq);
 	if (result == NEX_ENUM)
@@ -35,7 +43,8 @@ int main(void)
 	settimer3(200/4);
 	while(1)
 	{
-		ladder();  	// main loop to process all the modules
+		testcounters();
+		//ladder();  	// main loop to process all the modules
 	}
 
 	printf("Goodbye World\n\r");

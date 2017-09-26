@@ -77,7 +77,7 @@ void SPI_0_init()
 
 void SPI_0_enable()
 {
-	SPCR |= (1 << SPE);
+	SPCR |= (1 << SPE) | (1 << SPIE);		// SPIE added by bob
 }
 
 void SPI_0_disable()

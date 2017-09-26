@@ -34,8 +34,15 @@ extern char getlcdnvar(char *, unsigned long *);
 // write to a text object
 void setlcdtext(char *, char *);
 
-// send some numbers to a lcd obj.val object
+// send some numbers to a lcd obj.val object, param is text
 void setlcdnum(char *, char *);
+
+// send some numbers to a lcd obj.val object, param is binary long number
+void setlcdbin(char *, unsigned long);
+
+// send a string to the LCD (len max 255)
+// write to the lcd
+void writelcd(char *);
 
 //write a lcd cmd
 void writelcdcmd(char *);

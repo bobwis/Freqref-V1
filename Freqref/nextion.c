@@ -120,6 +120,17 @@ void setlcdtext(char id[], char string[])
 	writelcdcmd("\"");
 }
 
+// send some numbers to a lcd obj.val object, param is binary long number
+void setlcdbin(char *id, unsigned long value)
+{
+char buffer[16];
+
+	sprintf(buffer,"%lu",value);
+	writelcd(id);
+	writelcd("=");
+	writelcdcmd(buffer);
+}
+
 // send some numbers to a lcd obj.val object
 void setlcdnum(char id[], char string[])
 {

@@ -10,6 +10,7 @@
 #include "neo7m.h"
 #include "nextion.h"
 #include "dds.h"
+#include "ocxo.h"
 
 
 #define TIMED true
@@ -129,7 +130,19 @@ void drawgps()
 // populate the ocxo screen
 void drawocxo()
 {
-	// setlcdtext("gps.t0.txt","hello world");
+char buffer[32];
+uint8_t val;
+
+	setlcdbin("ocxo.n1.val",gpscount);
+	setlcdbin("ocxo.n2.val",ocxocount);
+	setlcdbin("ocxo.n0.val",ocxointerval);
+	setlcdbin("ocxo.n3.val",gpscount-ocxocount);
+	if (gpscount > ocxocount)
+		val = (gpscount-ocxocount);
+	else
+		val = (ocxocount-gpscount);
+	sprintf(buffer,"add 13,0,%d",val);
+	writelcdcmd(buffer);
 }
 
 
