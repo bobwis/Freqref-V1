@@ -223,6 +223,13 @@ void lcdpageevent(bool timed)
 			setlcdnum("top.t2.bco",(warmup) ? NEX_TBLACK : NEX_TYELLOW);
 		}
 
+		trig = ocxounlock;
+		if (trig != unlock)
+		{
+			trig = unlock;
+			setlcdnum("top.t3.bco",(!(ocxounlock)) ? NEX_TBLACK : NEX_TRED);
+		}
+
 		break;
 
 		case 1:		// GPS screen

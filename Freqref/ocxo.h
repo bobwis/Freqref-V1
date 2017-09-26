@@ -15,7 +15,10 @@
 #define high true
 
 extern unsigned long ocxocount, gpscount, ocxointerval;
+extern unsigned int adcval;
+extern bool ocxounlock;
 
+// init 
 bool ocxoinit(void);
 
 

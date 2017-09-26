@@ -43,8 +43,8 @@ int main(void)
 	settimer3(200/4);
 	while(1)
 	{
-		testcounters();
-		//ladder();  	// main loop to process all the modules
+		propocxo(); // proxess the ocxo tracking
+		ladder();  	// main loop to process all the modules
 	}
 
 	printf("Goodbye World\n\r");

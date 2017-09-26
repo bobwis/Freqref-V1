@@ -22,18 +22,19 @@
 // ChB full 0-4095 range is about + or - 0.002V against the ChA output (not used)
 
 unsigned long ocxocount, gpscount, ocxointerval;
-
+unsigned int adcval = 2570;
+bool ocxounlock = true;
 
 // swap the endian of a byte
 static  unsigned char niblookup[16] = {
 	0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
-	0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf, };
+0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf, };
 
 unsigned char swapend(unsigned char n)
 {
 
-   // Reverse the top and bottom nibble then swap them.
-   return (niblookup[n & 0xf] << 4) | niblookup[n >> 4];
+	// Reverse the top and bottom nibble then swap them.
+	return (niblookup[n & 0xf] << 4) | niblookup[n >> 4];
 }
 
 void spiwrite16(uint16_t data)
@@ -69,9 +70,9 @@ void debugdac()
 			LED_toggle_level();
 
 			if (i == 0)
-				i = 4095;
+			i = 4095;
 			else
-				i = 0;
+			i = 0;
 			printf("DAC %d\n\r",i);
 			spiwrite16(0x8000 | 0x1000 | i);    // analog into tcxo
 			delay_ms(5000/4);
@@ -79,10 +80,6 @@ void debugdac()
 	} while (1);
 }
 #endif
-
-
-
-
 
 // set up the ocxo DAC and IO ready for operation
 bool ocxoinit()
@@ -95,40 +92,42 @@ bool ocxoinit()
 	{
 		return(false);
 	}
-
-//	debugdac();
-
-	spiwrite16(0x1000 | 2580);    // mid-ish voltage into tcxo control
+	//	debugdac();
+	adcval = 2580;
+	spiwrite16(0x1000 | adcval);    // mid-ish voltage into tcxo control
+	ocxointerval = 10000L;
+	CNT_CLR_set_level(high);
+	ocxounlock = true;
 	return(true);
 }
 
 /*
-  Read the 4 bytes = 32 bits out of each counter
-  assumes count is already latched
+Read the 4 bytes = 32 bits out of each counter
+assumes count is already latched
 */
 unsigned long read32cnt(int countnum)
 {
-  int i;
-  unsigned char sel, n;
-  unsigned long result;
-  char selmap[] = {0, 4, 2, 6, 1, 5, 3, 7};
+	int i;
+	unsigned char sel, n;
+	unsigned long result;
+	char selmap[] = {0, 4, 2, 6, 1, 5, 3, 7};
 
-  result = 0;
-  sel = 0;
+	result = 0;
+	sel = 0;
 
-  for (i = 3; i >= 0; i--)
-  {
-    sel = (countnum) ? i + 4 : i;
-    sel = selmap[sel];
-    PORTA = (sel << 2) | (PORTA & 0xC0);    // set the 3 to 8 encoder output
-	__delay_cycles(100);
+	for (i = 3; i >= 0; i--)
+	{
+		sel = (countnum) ? i + 4 : i;
+		sel = selmap[sel];
+		PORTA = (sel << 2) | (PORTA & 0xC0);    // set the 3 to 8 encoder output
+		__delay_cycles(100);
 
-    result <<= 8;
-    n = PINC;		// read 8 bits, but all the bits are wrong endian!
-//	n = swapend(n);
-    result = result | n;
-  }
-  return (result);
+		result <<= 8;
+		n = PINC;		// read 8 bits, but all the bits are wrong endian!
+		//	n = swapend(n);
+		result = result | n;
+	}
+	return (result);
 }
 
 
@@ -138,21 +137,13 @@ void resetcnt()
 // 0x40 is /CCLR
 // 0x80 is RCLK
 {
-#if 0
-	PORTA = (PORTA & 0x3F) | CCLR;    // CLR high, RCLK low (arm RCLK)
-	delayMicroseconds(10);
-	PORTA = (PORTA & 0x3F) | (CCLR | RCLK);    // tfr count to latches
-	delayMicroseconds(10);
-	PORTA = (PORTA & 0x3F) | 0;    // clear the counters, arm RCLK
-#endif
-
 	CNT_CLR_set_level(high);		// ensure clr is inactive
 	__delay_cycles(1);
 	CNT_TFR_set_level(low);			// arm capture
 	__delay_cycles(1);
 	CNT_TFR_set_level(high);		// capture counters
 	__delay_cycles(1);
-//	CNT_CLR_set_level(low);		// reset the counters
+	//	CNT_CLR_set_level(low);		// reset the counters
 }
 
 
@@ -168,24 +159,70 @@ void testcounters()
 	resetcnt();
 	for(;;)
 	{
-	resetcnt();
-	CNT_CLR_set_level(low);
-	CNT_CLR_set_level(high);
-	delay_ms((unsigned int)ocxointerval);
+		resetcnt();
+		CNT_CLR_set_level(low);
+		CNT_CLR_set_level(high);
+		delay_ms((unsigned int)ocxointerval);
 
-	ocxocount = read32cnt(0);
-	gpscount = read32cnt(1);
-	err = gpscount-ocxocount;
-	printf("ocxo=%08lu, gps=%08lu diff=%d\n\r",ocxocount,gpscount,err);
-	ladder();
+		ocxocount = read32cnt(0);
+		gpscount = read32cnt(1);
+		err = gpscount-ocxocount;
+		printf("ocxo=%08lu, gps=%08lu diff=%d\n\r",ocxocount,gpscount,err);
+		ladder();
 
-//	if (lasterr != err)
-	{
-		adcval = adcval+err;
-		spiwrite16(0x1000 | adcval);    // adjust voltage into tcxo control
-		printf("dac=%d\n\r",adcval);
-		lasterr = err;
+		//	if (lasterr != err)
+		{
+			adcval = adcval+err;
+			spiwrite16(0x1000 | adcval);    // adjust voltage into tcxo control
+			printf("dac=%d\n\r",adcval);
+			lasterr = err;
 
+		}
 	}
 }
+
+// proportional ocxo
+// the most basic algorithm
+// this gets called periodically
+void propocxo()
+{
+	int lasterr, err;
+	static uint64_t lasttime = 0L;
+
+	if ((lasttime + ocxointerval) < msectime())
+	{
+		lasttime = msectime();
+		resetcnt();
+		ocxocount = read32cnt(0);
+		gpscount = read32cnt(1);
+
+		err = gpscount-ocxocount;
+
+		if ((abs(err)) > 3)
+		{
+			ocxointerval = (ocxointerval > 1000) ? ocxointerval >> 1 : 1000;
+		}
+		else
+		if ((abs(err)) < 2)
+		{
+			ocxointerval = (ocxointerval < 100000) ? ocxointerval << 1 : 100000;
+		}
+
+		if ((abs(err)) <= 1)
+		{
+			ocxounlock = false;
+		}
+		else
+		{
+			ocxounlock = true;
+		}
+
+		printf("ocxo=%08lu, gps=%08lu diff=%d interval=%ld\n\r",ocxocount,gpscount,err,ocxointerval);
+		{
+			adcval = adcval+err;
+			spiwrite16(0x1000 | adcval);    // adjust voltage into tcxo control
+			printf("dac=%d\n\r",adcval);
+			lasterr = err;
+		}
+	}
 }
