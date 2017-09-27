@@ -128,14 +128,14 @@ void drawgps()
 }
 
 // plot chart on ocxo screen
-// asumes 200 pixel X and 160pixel inverted Y scale
+// assumes 200 pixel X and 160pixel inverted Y scale
 // vpoints are signed bytes
 void plotocxo(int8_t vpoint1,int8_t vpoint2)
 {
 uint8_t pt;
 char buffer[32];
 
-	pt = abs(vpoint1);
+	pt = abs(vpoint1);	// this is the ocxo-gps counter error
 	vpoint1 = -vpoint1;	// invert Y
 	if (pt < 12)
 		vpoint1 *= 10;	// scale up
@@ -143,10 +143,10 @@ char buffer[32];
 	sprintf(buffer,"add 11,0,%d",vpoint1);		// plot points on chart
 	writelcdcmd(buffer);
 
-	pt = abs(vpoint2);
+	pt = abs(vpoint2);		// this is the dac level
 	vpoint2 = -vpoint2;	// invert Y
-	if (pt < 12)
-	vpoint2 *= 10;	// scale up
+	if (pt < 17)
+	vpoint2 *= 7;	// scale up
 	vpoint2 += (160/2);	// mid point
 	sprintf(buffer,"add 11,1,%d",vpoint2);		// plot points on chart
 	writelcdcmd(buffer);

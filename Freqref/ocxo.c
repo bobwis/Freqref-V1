@@ -255,7 +255,8 @@ void trackocxo()
 {
 	static unsigned long lastocxo = 0, lastgps = 0;
 	static int8_t ocxohigh = 0, ocxolow = 0;
-	int newdac;
+	int newdac; 
+	static int olddac = 0;
 	long int err;
 	unsigned int magerr;
 	static uint64_t now = 0L;
@@ -271,7 +272,7 @@ void trackocxo()
 	{
 		ocxohigh = 0;
 		ocxolow++;		// jitter filter
-		if (ocxolow > 2)
+		if (ocxolow > 5)
 		{
 			newdac = newdac + err;	// err is positive
 			if (newdac > 0xfff)
@@ -285,7 +286,7 @@ void trackocxo()
 	{
 		ocxolow = 0;
 		ocxohigh++;		// jitter filter
-		if (ocxohigh > 2)
+		if (ocxohigh > 5)
 		{
 			newdac = newdac + err;	// err is negative
 			if (newdac < 0)
@@ -293,6 +294,14 @@ void trackocxo()
 				newdac = 0;
 			}
 		}
+	}
+
+	if (err == 0)
+	{
+		if (ocxolow > 0)
+			ocxolow--;
+		if (ocxohigh > 0)
+			ocxohigh--;
 	}
 
 	magerr = abs(err);
@@ -304,13 +313,15 @@ void trackocxo()
 	{
 		ocxounlock = true;
 	}
-	if ((msectime()) > (now + 1000L))
+	if ((msectime()) > (now + 500L) && (newdac != olddac))
 	{
-		resetcnt();		// zero the counters
+
 		dacval = newdac;
+		olddac = newdac;
 		now = msectime();
 		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control		
 		printf("T DAC=%i, ocxo=%08lu, gps=%08lu err=%i \n\r",dacval,ocxocount,gpscount,err);
+		resetcnt();		// zero the counters
 		ocxolow = 0;
 		ocxohigh = 0;
 	}

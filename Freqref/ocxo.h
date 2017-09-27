@@ -14,7 +14,7 @@
 #define low false
 #define high true
 
-#define REFVAL 2576	// DAC approx 10MHz reference level
+#define REFVAL 2580	// DAC approx 10MHz reference level
 
 extern unsigned long ocxocount, gpscount, ocxointerval;
 extern unsigned int dacval;
