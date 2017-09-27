@@ -22,7 +22,7 @@
 // ChB full 0-4095 range is about + or - 0.002V against the ChA output (not used)
 
 unsigned long ocxocount, gpscount, ocxointerval;
-unsigned int adcval = 2570;
+unsigned int adcval = REFVAL;
 bool ocxounlock = true;
 
 // swap the endian of a byte
@@ -95,8 +95,8 @@ bool ocxoinit()
 	//	debugdac();
 	adcval = 2580;
 	spiwrite16(0x1000 | adcval);    // mid-ish voltage into tcxo control
-	ocxointerval = 10000L;
-	CNT_CLR_set_level(high);
+	ocxointerval = 2000L;		// two seconds
+	resetcnt();
 	ocxounlock = true;
 	return(true);
 }
@@ -130,23 +130,29 @@ unsigned long read32cnt(int countnum)
 	return (result);
 }
 
+// Capture the counters into the registers
+void capturecnt()
+{
+	CNT_TFR_set_level(low);			// arm capture
+	__delay_cycles(5);
+	CNT_TFR_set_level(high);		// capture counters
+	__delay_cycles(5);
+}
 
-
-// capture the current count into the registers and then clear the counters
+// clear the counters
 void resetcnt()
 // 0x40 is /CCLR
 // 0x80 is RCLK
 {
 	CNT_CLR_set_level(high);		// ensure clr is inactive
-	__delay_cycles(1);
-	CNT_TFR_set_level(low);			// arm capture
-	__delay_cycles(1);
-	CNT_TFR_set_level(high);		// capture counters
-	__delay_cycles(1);
-	//	CNT_CLR_set_level(low);		// reset the counters
+	__delay_cycles(5);
+	CNT_CLR_set_level(low);		// reset the counters
+	__delay_cycles(5);
+	CNT_CLR_set_level(high);		// re-arm the clear
 }
 
 
+#if 0
 // test the counters
 void testcounters()
 {
@@ -160,8 +166,6 @@ void testcounters()
 	for(;;)
 	{
 		resetcnt();
-		CNT_CLR_set_level(low);
-		CNT_CLR_set_level(high);
 		delay_ms((unsigned int)ocxointerval);
 
 		ocxocount = read32cnt(0);
@@ -173,6 +177,7 @@ void testcounters()
 		//	if (lasterr != err)
 		{
 			adcval = adcval+err;
+
 			spiwrite16(0x1000 | adcval);    // adjust voltage into tcxo control
 			printf("dac=%d\n\r",adcval);
 			lasterr = err;
@@ -180,35 +185,40 @@ void testcounters()
 		}
 	}
 }
+#endif
 
-// proportional ocxo
+
+// proportional ocxo control
 // the most basic algorithm
 // this gets called periodically
 void propocxo()
 {
-	int lasterr, err;
+	int err;
+	unsigned int magerr;
 	static uint64_t lasttime = 0L;
 
 	if ((lasttime + ocxointerval) < msectime())
 	{
 		lasttime = msectime();
-		resetcnt();
+		capturecnt();
 		ocxocount = read32cnt(0);
 		gpscount = read32cnt(1);
 
-		err = gpscount-ocxocount;
+		resetcnt();		// zero the counters
+		err = gpscount-ocxocount;		// pos means ocxo is slower, so dac needs increase
 
-		if ((abs(err)) > 3)
+		magerr = abs(err);
+		if (magerr > 2)
 		{
-			ocxointerval = (ocxointerval > 1000) ? ocxointerval >> 1 : 1000;
+			ocxointerval = (ocxointerval > 4096) ? ocxointerval >> 1 : 2048L;
 		}
 		else
-		if ((abs(err)) < 2)
+		if (magerr < 2)
 		{
-			ocxointerval = (ocxointerval < 100000) ? ocxointerval << 1 : 100000;
+			ocxointerval = (ocxointerval <= 64000L) ? ocxointerval << 1 : 128000L;
 		}
 
-		if ((abs(err)) <= 1)
+		if (magerr <= 1)
 		{
 			ocxounlock = false;
 		}
@@ -217,12 +227,94 @@ void propocxo()
 			ocxounlock = true;
 		}
 
-		printf("ocxo=%08lu, gps=%08lu diff=%d interval=%ld\n\r",ocxocount,gpscount,err,ocxointerval);
+		if (magerr > 100)
 		{
-			adcval = adcval+err;
+			magerr = 100;		// limit dac step size
+		}
+
+		if (err < 0)
+		{
+			adcval = adcval - magerr;
+		}
+		else if (err > 0)
+		{
+			adcval = adcval + magerr;
+		}
+
+		if (adcval > 0xfff)
+		adcval = 0xfff;
+
+		spiwrite16(0x1000 | adcval);    // adjust voltage into tcxo control
+		printf("P ocxo=%08lu, gps=%08lu diff=%d interval=%ld DAC=%d\n\r",ocxocount,gpscount,err,ocxointerval,adcval);
+	}
+}
+
+// tracking ocxo control
+// this gets called periodically
+void trackocxo()
+{
+	static unsigned long lastocxo = 0, lastgps = 0;
+	static int8_t ocxohigh = 0, ocxolow = 0;
+	static unsigned int olddac = 0;
+	int err;
+	unsigned int magerr;
+	static uint64_t now = 0L;
+
+	capturecnt();
+	ocxocount = read32cnt(0);
+	gpscount = read32cnt(1);
+
+	err = (gpscount - ocxocount);
+
+	if (err > 0)  	// tracking possibly slipping, ocxo is slow
+	{
+		ocxohigh = 0;
+		ocxolow++;		// jitter filter
+		if (ocxolow > 2)	
+		{
+			adcval = adcval + err;	// err is positive
+			if (adcval > 0xfff)
+			{
+				adcval = 0xfff;
+			}
+		}
+	}
+	else
+	if (err < 0)	// tracking possibly slipping, ocxo is fast
+	{
+		ocxolow = 0;
+		ocxohigh++;		// jitter filter
+		if (ocxohigh > 2)
+		{
+			adcval = adcval + err;	// err is negative
+			if (adcval < 0)
+			{
+				adcval = 0;
+			}
+		}
+	}
+
+	magerr = abs(err);
+	if (magerr <= 1)		// lost tracking flag 
+	{
+		ocxounlock = false;
+	}
+	else
+	{
+		ocxounlock = true;
+	}
+
+	if (olddac != adcval)
+	{
+		if ((msectime()) > (now + 10000L))
+		{
+			resetcnt();		// zero the counters
+			now = msectime();
 			spiwrite16(0x1000 | adcval);    // adjust voltage into tcxo control
-			printf("dac=%d\n\r",adcval);
-			lasterr = err;
+			printf("T ocxo=%08lu, gps=%08lu err=%d interval=%ld DAC=%d\n\r",ocxocount,gpscount,err,ocxointerval,adcval);
+			ocxolow = 0;
+			ocxohigh = 0;
+			olddac = adcval;
 		}
 	}
 }

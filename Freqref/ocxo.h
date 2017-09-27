@@ -14,6 +14,8 @@
 #define low false
 #define high true
 
+#define REFVAL 2576	// DAC approx 10MHz reference level
+
 extern unsigned long ocxocount, gpscount, ocxointerval;
 extern unsigned int adcval;
 extern bool ocxounlock;
@@ -21,5 +23,10 @@ extern bool ocxounlock;
 // init 
 bool ocxoinit(void);
 
+// reset frequency counters
+void resetcnt(void);
+
+// proportional control
+void propocxo();
 
 #endif /* OCXO_H_ */

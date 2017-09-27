@@ -127,22 +127,50 @@ void drawgps()
 
 }
 
+// plot chart on ocxo screen
+// asumes 200 pixel X and 160pixel inverted Y scale
+// vpoints are signed bytes
+void plotocxo(int8_t vpoint1,int8_t vpoint2)
+{
+uint8_t pt;
+char buffer[32];
+
+	pt = abs(vpoint1);
+	vpoint1 = -vpoint1;	// invert Y
+	if (pt < 12)
+		vpoint1 *= 10;	// scale up
+	vpoint1 += (160/2);	// mid point
+	sprintf(buffer,"add 11,0,%d",vpoint1);		// plot points on chart
+	writelcdcmd(buffer);
+
+	pt = abs(vpoint2);
+	vpoint2 = -vpoint2;	// invert Y
+	if (pt < 12)
+	vpoint2 *= 10;	// scale up
+	vpoint2 += (160/2);	// mid point
+	sprintf(buffer,"add 11,1,%d",vpoint2);		// plot points on chart
+	writelcdcmd(buffer);
+}
+
+
 // populate the ocxo screen
 void drawocxo()
 {
-char buffer[32];
-uint8_t val;
-
+	if (ocxounlock)
+	{
+		setlcdtext("ocxo.t0.txt","Lost Track");
+	}
+	else
+	{
+		setlcdtext("ocxo.t0.txt","Tracking");
+	}
+	setlcdbin("ocxo.n0.val",ocxointerval);
 	setlcdbin("ocxo.n1.val",gpscount);
 	setlcdbin("ocxo.n2.val",ocxocount);
-	setlcdbin("ocxo.n0.val",ocxointerval);
 	setlcdbin("ocxo.n3.val",gpscount-ocxocount);
-	if (gpscount > ocxocount)
-		val = (gpscount-ocxocount);
-	else
-		val = (ocxocount-gpscount);
-	sprintf(buffer,"add 13,0,%d",val);
-	writelcdcmd(buffer);
+	setlcdbin("ocxo.n4.val",(unsigned long)(msectime()/1000L));
+
+	plotocxo((int8_t)(gpscount-ocxocount),(int8_t)(REFVAL-adcval));
 }
 
 
@@ -216,7 +244,7 @@ void lcdpageevent(bool timed)
 			setlcdnum("top.t1.bco",(gps) ? NEX_TBLACK : NEX_TRED);
 		}
 
-		trig = (m1sectimer > /* (20L*60L*1000L) */ (60L*1000L));
+		trig = (m1sectimer > (10L*60L*1000L));
 		if (trig != warmup)
 		{
 			warmup = trig;
