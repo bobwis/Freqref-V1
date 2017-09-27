@@ -259,7 +259,7 @@ void trackocxo()
 	static int olddac = 0;
 	long int err;
 	unsigned int magerr;
-	static uint64_t now = 0L;
+	static uint64_t now = 0L, lasthit = 0L;
 
 	capturecnt();
 	ocxocount = read32cnt(0);
@@ -268,6 +268,14 @@ void trackocxo()
 	err = (gpscount - ocxocount);
 
 	newdac = dacval;
+	if (err > 2047)
+	{
+		err = 2047;	// max value limit
+	}
+	if (err < -2048)
+	{
+		err = -2048;	// min 
+	}
 	if (err > 0)  	// tracking possibly slipping, ocxo is slow
 	{
 		ocxohigh = 0;
@@ -313,15 +321,21 @@ void trackocxo()
 	{
 		ocxounlock = true;
 	}
-	if ((msectime()) > (now + 500L) && (newdac != olddac))
+	ocxointerval = (msectime()/1000L-lasthit/1000L)-3L;
+	if ((msectime()) > (now + 200L) && (newdac != olddac))
 	{
-
 		dacval = newdac;
 		olddac = newdac;
 		now = msectime();
-		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control		
-		printf("T DAC=%i, ocxo=%08lu, gps=%08lu err=%i \n\r",dacval,ocxocount,gpscount,err);
-		resetcnt();		// zero the counters
+		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control	
+
+		printf("T DAC=%i, elapsed=%3lu ocxo=%08lu, gps=%08lu err=%ld \n\r",dacval,ocxointerval,ocxocount,gpscount,err);
+		lasthit = now;
+		while (msectime() < (now + 3000L))	// wait for dac->oxco to settle
+			{
+				;
+			}
+		resetcnt();		// zero the counters and start reading again
 		ocxolow = 0;
 		ocxohigh = 0;
 	}
