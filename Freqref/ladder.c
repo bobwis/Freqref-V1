@@ -170,7 +170,7 @@ void drawocxo()
 	setlcdbin("ocxo.n3.val",gpscount-ocxocount);
 	setlcdbin("ocxo.n4.val",(unsigned long)(msectime()/1000L));
 
-	plotocxo((int8_t)(gpscount-ocxocount),(int8_t)(REFVAL-adcval));
+	plotocxo((int8_t)(gpscount-ocxocount),(int8_t)(REFVAL-dacval));
 }
 
 

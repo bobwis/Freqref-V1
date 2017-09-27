@@ -17,7 +17,7 @@
 #define REFVAL 2576	// DAC approx 10MHz reference level
 
 extern unsigned long ocxocount, gpscount, ocxointerval;
-extern unsigned int adcval;
+extern unsigned int dacval;
 extern bool ocxounlock;
 
 // init 
