@@ -249,13 +249,14 @@ void propocxo()
 	}
 }
 
+#if 0
 // tracking ocxo control
 // this gets called periodically
 void trackocxo()
 {
 	static unsigned long lastocxo = 0, lastgps = 0;
 	static int8_t ocxohigh = 0, ocxolow = 0;
-	int newdac; 
+	int newdac;
 	static int olddac = 0;
 	long int err;
 	unsigned int magerr;
@@ -274,7 +275,7 @@ void trackocxo()
 	}
 	if (err < -2048)
 	{
-		err = -2048;	// min 
+		err = -2048;	// min
 	}
 	if (err > 0)  	// tracking possibly slipping, ocxo is slow
 	{
@@ -307,9 +308,9 @@ void trackocxo()
 	if (err == 0)
 	{
 		if (ocxolow > 0)
-			ocxolow--;
+		ocxolow--;
 		if (ocxohigh > 0)
-			ocxohigh--;
+		ocxohigh--;
 	}
 
 	magerr = abs(err);
@@ -322,21 +323,129 @@ void trackocxo()
 		ocxounlock = true;
 	}
 	ocxointerval = (msectime()/1000L-lasthit/1000L)-3L;
-	if ((msectime()) > (now + 200L) && (newdac != olddac))
+	//	if ((msectime()) > (now + 5000L) && (newdac != olddac))
+	if ((ocxocount > 20000000L) && (newdac != olddac))
 	{
 		dacval = newdac;
 		olddac = newdac;
 		now = msectime();
-		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control	
+		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
 
 		printf("T DAC=%i, elapsed=%3lu ocxo=%08lu, gps=%08lu err=%ld \n\r",dacval,ocxointerval,ocxocount,gpscount,err);
 		lasthit = now;
 		while (msectime() < (now + 3000L))	// wait for dac->oxco to settle
-			{
-				;
-			}
+		{
+			;
+		}
 		resetcnt();		// zero the counters and start reading again
 		ocxolow = 0;
 		ocxohigh = 0;
+	}
+}
+#endif
+
+// adjust the dac (scale and limit as appropriate from the error)
+// err contains gpscnt - ocxocnt
+uint16_t calcdac(long err)
+{
+	bool errneg;
+	int16_t dac;
+
+	errneg = (err < 0L) ? true : false;
+	err = abs(err);		// make err positive magnitude
+	if (err > 2047)
+	{
+		err = 2047;	// max value limit
+	}
+
+	dac = (errneg) ? dacval - err : dacval + err;
+	if (dac > 4095)
+		dac = 4095;
+	if (dac < 0)
+		dac = 0;
+	return(dac);
+}
+
+// report a error of 2 or more to 'tracking' front panel indicator
+void reportrack(long err)
+{
+	if (abs(err) > 1)		
+	{
+		ocxounlock = false;
+	}
+	else
+	{
+		ocxounlock = true;
+	}
+}
+
+
+// tracking ocxo control
+// this gets called periodically
+void track2ocxo()
+{
+	static int8_t onecnt = 0;
+	int newdac;
+	long int err;
+	static uint16_t ocxosettle = 0;
+	static uint64_t lasthit = 0L;
+	static bool armreset = true;
+	
+	if (ocxosettle)
+	{
+		ocxosettle--;
+		delay_ms(1);
+		armreset = true;
+		return;			// ocxo is settling from the last change
+	}
+	else if (armreset)
+	{
+		armreset = false;
+		resetcnt();		// zero the counters and start count again
+		lasthit = msectime();
+		// shouldn't care that it will fall through to a low count reading next???
+		return;
+	}
+	capturecnt();
+	ocxocount = read32cnt(0);
+	gpscount = read32cnt(1);
+
+	err = (gpscount - ocxocount);
+
+	if (err == 0)
+	{
+		return;			// nothing to do
+	}
+
+	if (abs(err) > 1)	// a definite error; tracking slipping
+	{
+
+	}
+
+	if (abs(err) == 1)  	// tracking possibly slipping, but it could be capture timing +- 1 count
+	{
+		onecnt++;			// debounce
+		if (onecnt > 11111)		// n+1 readings in a row had a difference of one
+		{
+			onecnt = 0;
+		}
+		else
+		{
+			err = 0;		// ignore the error this time through
+		}
+	}
+
+	reportrack(err);		// front panel lamp
+
+	newdac = calcdac(err);	// calculate the new dac value from the error
+
+	if (newdac != dacval)		// should never be equal here?
+	{
+		dacval = newdac;
+		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
+		ocxosettle = 2000;
+
+		ocxointerval =  msectime() - lasthit;
+		printf("T2 DAC=%i, elapsed=%3lu ocxo=%08lu, gps=%08lu err=%ld \n\r",dacval,ocxointerval,ocxocount,gpscount,err);
 	}
 }
