@@ -389,22 +389,22 @@ void track2ocxo()
 	long int err;
 	static uint16_t ocxosettle = 0;
 	static uint64_t lasthit = 0L;
-	static bool armreset = true;
+	static uint8_t state = 0;
 	
 	if (ocxosettle)
 	{
 		ocxosettle--;
 		delay_ms(1);
-		armreset = true;
+		state = 1;
 		return;			// ocxo is settling from the last change
 	}
-	else if (armreset)
+	else if (state == 1)
 	{
-		armreset = false;
 		resetcnt();		// zero the counters and start count again
-		lasthit = msectime();
+		state = 2;
+		ocxointerval =  msectime() - lasthit;		
+		lasthit = msectime();		// time from last counter reeset
 		// shouldn't care that it will fall through to a low count reading next???
-		return;
 	}
 	capturecnt();
 	ocxocount = read32cnt(0);
@@ -412,26 +412,37 @@ void track2ocxo()
 
 	err = (gpscount - ocxocount);
 
+	if (state == 2)		// only just restarted counters after a clear
+	{
+		if (abs(err) == 1)	// count is skewed by one
+		{
+			state = 1;		// abort; try another reset
+			return;
+		}
+		state = 0;		// normal running
+	}
+
 	if (err == 0)
 	{
+		reportrack(err);		// front panel lamp	
 		return;			// nothing to do
 	}
-
+	
 	if (abs(err) > 1)	// a definite error; tracking slipping
 	{
-
+		// nothing here yet - 
 	}
 
-	if (abs(err) == 1)  	// tracking possibly slipping, but it could be capture timing +- 1 count
+	if (abs(err) == 1)  	// tracking possibly slipping, but it could be noise +- 1 count
 	{
-		onecnt++;			// debounce
-		if (onecnt > 11111)		// n+1 readings in a row had a difference of one
+		onecnt++;			// debounce the noise, only act if it happens n+1 times
+		if (onecnt > 1)		// n+1 readings in a row had a difference of one
 		{
 			onecnt = 0;
 		}
 		else
 		{
-			err = 0;		// ignore the error this time through
+			return;		// ignore the error this time through
 		}
 	}
 
@@ -444,8 +455,6 @@ void track2ocxo()
 		dacval = newdac;
 		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
 		ocxosettle = 2000;
-
-		ocxointerval =  msectime() - lasthit;
 		printf("T2 DAC=%i, elapsed=%3lu ocxo=%08lu, gps=%08lu err=%ld \n\r",dacval,ocxointerval,ocxocount,gpscount,err);
 	}
 }
