@@ -307,6 +307,9 @@
     <Compile Include="ocxo.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="pid.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\driver_init.c">
       <SubType>compile</SubType>
     </Compile>
