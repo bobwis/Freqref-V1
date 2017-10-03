@@ -43,9 +43,10 @@ int main(void)
 	settimer3(200/4);
 	while(1)
 	{
-//		propocxo(); // proxess the ocxo tracking
+		propocxo(); // proxess the ocxo tracking
 //		trackocxo(); // proxess the ocxo tracking
-		track2ocxo(); // proxess the ocxo tracking
+//		track2ocxo(); // proxess the ocxo tracking
+//		testocxo();
 		ladder();  	// main loop to process all the modules
 	}
 

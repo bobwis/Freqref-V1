@@ -313,3 +313,11 @@ void ladder(void)
 	}
 	return;
 }
+
+
+void showCounts()
+{
+	capturecnt();
+	ocxocount = read32cnt(0);
+	gpscount = read32cnt(1);
+}
