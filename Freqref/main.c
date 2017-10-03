@@ -6,6 +6,7 @@
 #include "ladder.h"
 #include "dds.h"
 #include "ocxo.h"
+#include "pid.h"
 
 
 int main(void)
