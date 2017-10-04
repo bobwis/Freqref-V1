@@ -20,8 +20,8 @@ namespace Simulation
                 var gpscount = myGPS.GetCount(10000000);
                 var ocxcount = myOCXO.GetCount(10000000);
 
-                Console.WriteLine($" GPS count = {gpscount}");
-                Console.WriteLine($" OCXO count = {ocxcount}" );
+                Console.Write($" GPS count = {gpscount}");
+                Console.Write($" OCXO count = {ocxcount}" );
 
                 //var tweak = int.Parse(Console.ReadLine());
 
@@ -31,8 +31,6 @@ namespace Simulation
                 myOCXO.TweakInput(tweak);
 
             }
-
-
         }
     }
 
@@ -40,8 +38,6 @@ namespace Simulation
     public interface IFreqSource
     {
         void TweakInput(long val);
-           
-
     }
 
     public class OCXO :BaseSource , IFreqSource
@@ -61,17 +57,18 @@ namespace Simulation
 
         public void TweakInput(long dacVal)
         {
-            var roughtweak = ((double)dacVal * (double)0.00000000008);
+            var roughtweak = ((double)dacVal * (double)0.001829224/10e6);
+            //   var roughtweak = ((double)dacVal * (double)10e-6 * 8);
 
-            // what should the freq change be?
-            if (dacVal > _currentdacVal)
+            if (dacVal >= 2048)
             {
-                CurrentFreq += roughtweak;
+                CurrentFreq = 1.0 + roughtweak;
             }
             else
             {
-                CurrentFreq -= roughtweak;
+                CurrentFreq = 1.0 - roughtweak;
             }
+
             _currentdacVal = dacVal;
         }
 

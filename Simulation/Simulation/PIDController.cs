@@ -65,7 +65,9 @@ namespace Simulation
 
                 if (dacval > 0xfff)
                     dacval = 0xfff;
-
+                Console.Write($" err={err}");
+                Console.Write($" interval={ocxointerval}");
+                Console.Write($" magerr={magerr}");
 
                 return dacval;
             }
