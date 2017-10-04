@@ -26,9 +26,7 @@ namespace Simulation
             lastTick = tick;
             if (timediff > ocxointerval)
             {
-                int scale;
-
-                int magerr = (int)((err > 0) ? err : -err);
+                var magerr = (int)((err > 0) ? err : -err);
 
                 if (magerr > 3)
                 {
@@ -40,7 +38,7 @@ namespace Simulation
                     ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) : 420000;        // add 100% more time
                 }
 
-                scale = (420 - ((ocxointerval * 4) / 1000)) / 8;
+                var scale = (420 - ((ocxointerval * 4) / 1000)) / 8;
                 if (scale < 1)
                 {
                     scale = 1;
@@ -52,24 +50,23 @@ namespace Simulation
                     magerr = 1000;      // limit dac step size
                 }
 
-                int dacval = (int)currentVal;
+                var dacval = (uint)currentVal;
 
                 if (err < 0)
                 {
-                    dacval = dacval - magerr;
+                    dacval = (uint) (dacval - magerr);
                 }
                 else if (err > 0)
                 {
-                    dacval = dacval + magerr;
+                    dacval = (uint) (dacval + magerr);
                 }
 
                 if (dacval > 0xfff)
                     dacval = 0xfff;
-
-
                 return dacval;
+
             }
-            return currentVal;
+            return -1;
 
         }
     }
