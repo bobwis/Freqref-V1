@@ -37,25 +37,22 @@ namespace Simulation
         // Sets the target frequency, where we'll be moving to, but not instantaneous
         public void TweakInput(long dacVal)
         {
+            var roughtweak = ((double)dacVal * (double)0.001829224 / 10e6);
+            //   var roughtweak = ((double)dacVal * (double)10e-6 * 8);
 
-            dacVal = Math.Min(_maxdavVal, Math.Max(dacVal, 0));
-            var roughtweak = ((double)dacVal * (double)0.0000000008);
-
-            // what should the freq change be?
-            if (dacVal > _currentdacVal)
+            if (dacVal >= 2048)
             {
-                TargetFrequency += roughtweak;
-                TargetFrequency = Math.Min(TargetFrequency, _maxFreq);
+                TargetFrequency= 1.0 + roughtweak;
             }
-            else if(dacVal > _currentdacVal)
+            else
             {
-                TargetFrequency -= roughtweak;
-                TargetFrequency = Math.Max(TargetFrequency, _minFreq);
+                TargetFrequency = 1.0 - roughtweak;
             }
 
-            _currentdacVal = Math.Min(_maxdavVal,Math.Max(dacVal,0)) ;
-
+            _currentdacVal = dacVal;
         }
+
+
 
         internal long GetDACVAl()
         {

@@ -8,9 +8,9 @@ namespace Simulation
         public GPSSource()
         {
             CurrentFreq = 1.0000000;
-        }    
+        }
 
-        public override double  GetCount(double dt)
+        public override double GetCount(double dt)
         {
             var r = new Random();
             return base.GetCount(dt) + r.Next(2);

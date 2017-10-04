@@ -54,22 +54,15 @@ namespace Simulation
 
                 if (err < 0)
                 {
-                    dacval = (uint) (dacval - magerr);
+                    dacval = (uint)(dacval - magerr);
                 }
                 else if (err > 0)
                 {
-                    dacval = (uint) (dacval + magerr);
+                    dacval = (uint)(dacval + magerr);
                 }
 
                 if (dacval > 0xfff)
                     dacval = 0xfff;
-<<<<<<< HEAD
-                Console.Write($" err={err}");
-                Console.Write($" interval={ocxointerval}");
-                Console.Write($" magerr={magerr}");
-
-=======
->>>>>>> a0bc5d9407e2f7e55dc403ecf9941b21ffb5acb5
                 return dacval;
 
             }
