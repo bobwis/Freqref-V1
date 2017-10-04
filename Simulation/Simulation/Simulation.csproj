@@ -43,6 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseSource.cs" />
+    <Compile Include="GPSSource.cs" />
+    <Compile Include="OCXO.cs" />
     <Compile Include="PIDController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

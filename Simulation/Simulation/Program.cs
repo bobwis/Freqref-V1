@@ -11,11 +11,13 @@ namespace Simulation
         static void Main(string[] args)
         {
             OCXO myOCXO = new OCXO();
-            GPSSource myGPS = new GPSSource();
-            PIDController myPID = new PIDController();
+            var myGPS = new GPSSource();
+            var myPID = new PIDController();
             Int64 tick = 0;
+            Int64 responsecount= 0;
             while (true)
             {
+<<<<<<< HEAD
                 tick=tick+ 10000000;
                 var gpscount = myGPS.GetCount(10000000);
                 var ocxcount = myOCXO.GetCount(10000000);
@@ -23,12 +25,29 @@ namespace Simulation
                 Console.Write($" GPS count = {gpscount}");
                 Console.Write($" OCXO count = {ocxcount}" );
 
+=======
+                myOCXO.Tick();
+                tick=tick+100;
+>>>>>>> a0bc5d9407e2f7e55dc403ecf9941b21ffb5acb5
                 //var tweak = int.Parse(Console.ReadLine());
-
+                responsecount = responsecount + 100;
+                var gpscount = myGPS.GetCount(responsecount);
+                var ocxcount = myOCXO.GetCount(responsecount);
                 long tweak = myPID.GetValue(gpscount,ocxcount, tick, myOCXO.GetDACVAl());
+<<<<<<< HEAD
                 Console.WriteLine($" Tweak DACVAL = = {tweak}");
                 
                 myOCXO.TweakInput(tweak);
+=======
+                if (tweak != -1)
+                {
+                    responsecount = 0;
+                    Console.Write($"Tick {tick} GPS count = {gpscount} OCXO count = {ocxcount}");
+                    Console.Write($" Tweak DACVAL = {tweak}                               \r");
+                    myOCXO.TweakInput(tweak);
+                }
+
+>>>>>>> a0bc5d9407e2f7e55dc403ecf9941b21ffb5acb5
 
             }
         }
@@ -39,6 +58,7 @@ namespace Simulation
     {
         void TweakInput(long val);
     }
+<<<<<<< HEAD
 
     public class OCXO :BaseSource , IFreqSource
     {
@@ -112,4 +132,6 @@ namespace Simulation
             throw new NotImplementedException();
         }
     }
+=======
+>>>>>>> a0bc5d9407e2f7e55dc403ecf9941b21ffb5acb5
 }
