@@ -2,9 +2,9 @@
 
 namespace Simulation
 {
-    public class OCXO :BaseSource , IFreqSource
+    public class OCXO :BaseSource
     {
-        private double riseRate = 0.00001;
+        private double riseRate = 0.0000001;
 
         public void Tick()
         {
@@ -19,6 +19,10 @@ namespace Simulation
                 
 
         }
+
+        public double Target => TargetFrequency;
+        public double Current => CurrentFreq;
+
         double _maxFreq = 10.0000005;
         double _minFreq =  0.8999995;
 

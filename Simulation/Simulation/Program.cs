@@ -1,47 +1,73 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Threading;
 
 namespace Simulation
 {
-    class Program
+
+
+
+    public class Program
     {
+        private static long tick = 0;
+
         static void Main(string[] args)
         {
+            var timerThread = new Thread(TickTock);
             OCXO myOCXO = new OCXO();
             var myGPS = new GPSSource();
             var myPID = new PIDController();
-            Int64 tick = 0;
+            timerThread.Start(myOCXO);
             Int64 responsecount = 0;
-            while (true)
+
+            using (System.IO.StreamWriter file = new StreamWriter("output.csv"))
             {
-                myOCXO.Tick();
-                tick = tick + 100;
-                //var tweak = int.Parse(Console.ReadLine());
-                responsecount = responsecount + 100;
-                var gpscount = myGPS.GetCount(responsecount);
-                var ocxcount = myOCXO.GetCount(responsecount);
-                long tweak = myPID.GetValue(gpscount, ocxcount, tick, myOCXO.GetDACVAl());
-                if (tweak != -1)
+                while (true)
                 {
-                    responsecount = 0;
-                    Console.Write($"Tick {tick} GPS count = {gpscount} OCXO count = {ocxcount}");
-                    Console.Write($" Tweak DACVAL = {tweak}                               \r");
-                    myOCXO.TweakInput(tweak);
+                    //var tweak = int.Parse(Console.ReadLine());
+                    responsecount = responsecount + tick;
+                    var gpscount = myGPS.GetCount(responsecount);
+                    var ocxcount = myOCXO.GetCount(responsecount);
+                    long tweak = myPID.GetValue(gpscount, ocxcount, responsecount , myOCXO.GetDACVAl());
+                    if (tweak != -1)
+                    {
+                        responsecount = 0;
+                        Console.Write($"Tick {tick} ");
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        /*                    Console.Write($"GPS count = {gpscount}");
+                                            Console.ForegroundColor = ConsoleColor.Blue;
+                                            Console.Write($"OCXO count = {ocxcount}");
+                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                        */
+                        Console.Write($"Current = {myOCXO.Current}");
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.Write($"Target = {myOCXO.Target}");
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.Write($" Tweak DACVAL = {tweak}");
+                        file.WriteLine($"{myOCXO.Target}, {myOCXO.Current},{responsecount},{DateTime.Now}");
+                        
+                        myOCXO.TweakInput(tweak);
+                    }
+
+
                 }
 
+            }
+            return;
+        }
 
+
+        private static void TickTock(object ocxo)
+        {
+            while (true)
+            {
+                lock (ocxo)
+                {
+                    tick++;
+                    (ocxo as OCXO)?.Tick();
+
+                }
             }
         }
-    }
-
-
-    public interface IFreqSource
-    {
-        void TweakInput(long val);
-
-
-    }
+    }     
 }
