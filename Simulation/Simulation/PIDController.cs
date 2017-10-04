@@ -1,9 +1,12 @@
-﻿namespace Simulation
+﻿using System.Threading;
+
+namespace Simulation
 {
     public class PIDController
     {
         private long lastTick = 0;
-        private int ocxointerval = 0;
+        private int ocxointerval = 204800;
+
 
         // return a dacValue 
         internal long GetValue(double gpscount, double ocxcount, long tick, long currentVal)
@@ -21,12 +24,12 @@
 
             if (magerr > 3)
             {
-                ocxointerval = (ocxointerval > 4096) ? ocxointerval >> 1 : 2048;    // reduce time by half
+                ocxointerval = (ocxointerval > 409600) ? ocxointerval >> 1 : 204800;    // reduce time by half
             }
             else
             if (magerr <= 2)
             {
-                ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) : 420000;        // add 100% more time
+                ocxointerval = (ocxointerval <= 25600000L) ? (ocxointerval << 1) : 42000000;        // add 100% more time
             }
 
             var scale = (420 - ((ocxointerval * 4) / 1000)) / 8;

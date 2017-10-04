@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Simulation
@@ -31,22 +32,25 @@ namespace Simulation
                     long tweak = myPID.GetValue(gpscount, ocxcount, responsecount , myOCXO.GetDACVAl());
                     if (tweak != -1)
                     {
-                        responsecount = 0;
+
                         Console.Write($"Tick {tick} ");
                         Console.ForegroundColor = ConsoleColor.Green;
-                        /*                    Console.Write($"GPS count = {gpscount}");
+                                            Console.Write($"GPS count = {gpscount}");
                                             Console.ForegroundColor = ConsoleColor.Blue;
                                             Console.Write($"OCXO count = {ocxcount}");
                                             Console.ForegroundColor = ConsoleColor.Yellow;
-                        */
-                        Console.Write($"Current = {myOCXO.Current}");
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write($"Target = {myOCXO.Target}");
+                        
                         Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write($" Tweak DACVAL = {tweak}");
-                        file.WriteLine($"{myOCXO.Target}, {myOCXO.Current},{responsecount},{DateTime.Now}");
+                        Console.Write($" Tweak DACVAL = {tweak} ");
+                        Console.Write($"{responsecount}");
+                        Console.Write($"Current = {myOCXO.Current} ");
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.Write($"Target = {myOCXO.Target} ");
+                        Console.Write($"\r\n");
+                        file.WriteLine($"{myOCXO.GetDACVAl()} ,{tweak}, {myOCXO.Target}, {myOCXO.Current},{responsecount},{DateTime.Now}");
                         
                         myOCXO.TweakInput(tweak);
+                        responsecount = 0;
                     }
 
 
@@ -61,6 +65,7 @@ namespace Simulation
         {
             while (true)
             {
+              //  Thread.Sleep(1);
                 lock (ocxo)
                 {
                     tick++;

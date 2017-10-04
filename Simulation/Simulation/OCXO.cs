@@ -4,20 +4,23 @@ namespace Simulation
 {
     public class OCXO :BaseSource
     {
-        private double riseRate = 0.0000001;
+        private double riseRate = 0.00000001;
 
         public void Tick()
         {
             //move incrementally towards TargetFrequency
             if (CurrentFreq != TargetFrequency) // will give chance for drift
             {
-                if (CurrentFreq > TargetFrequency)
-                    CurrentFreq -= riseRate;
+                if (Math.Abs(CurrentFreq - TargetFrequency) < riseRate)
+                { CurrentFreq = TargetFrequency; }
                 else
-                    CurrentFreq += riseRate;
+                {
+                    if (CurrentFreq > TargetFrequency)
+                        CurrentFreq -= riseRate;
+                    else
+                        CurrentFreq += riseRate;
+                }
             }
-                
-
         }
 
         public double Target => TargetFrequency;
