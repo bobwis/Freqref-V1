@@ -29,4 +29,7 @@ void resetcnt(void);
 // proportional control
 void propocxo();
 
+void setdacandwait(int i);
+
+
 #endif /* OCXO_H_ */

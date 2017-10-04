@@ -53,8 +53,8 @@ void spiwrite16(uint16_t data)
 	CS_DAC_set_level(high);
 }
 
-#undef DEBUGDAC
-#ifdef DEBUGDAC
+//#undef DEBUGDAC
+//#ifdef DEBUGDAC
 void debugdac()
 {
 	int i;
@@ -79,7 +79,11 @@ void debugdac()
 		}
 	} while (1);
 }
-#endif
+
+
+
+//#endif
+
 
 // set up the ocxo DAC and IO ready for operation
 bool ocxoinit()
@@ -247,10 +251,20 @@ void propocxo()
 
 		if (dacval > 0xfff)
 		dacval = 0xfff;
-
+		
 		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
 		printf("P ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%d\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
 	}
+}
+
+void setdacandwait(int i)
+{
+	int cha, chb;
+	cha = 0x1000 | 2000;	// 50 %
+	spiwrite16(cha);    // chan A
+	printf("DAC %d\n\r",i);
+	spiwrite16(0x8000 | 0x1000 | i);    // analog into tcxo
+	delay_ms(20000);
 }
 
 #if 0

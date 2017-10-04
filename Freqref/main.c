@@ -43,7 +43,11 @@ int main(void)
 
 	settimer3(200/4);
 	while(1)
-	{
+	{//
+//setdacandwait(0);
+//setdacandwait(4095);
+//debugdac();
+
 		propocxo(); // proxess the ocxo tracking
 //		trackocxo(); // proxess the ocxo tracking
 //		track2ocxo(); // proxess the ocxo tracking
