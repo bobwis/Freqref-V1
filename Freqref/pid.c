@@ -20,14 +20,15 @@
 
  int sum_error()
  {
-	 int i = 0, sum = 0;
-	 for (i = 0; i<history_count; i++)
+	 int pos = 0, sum = 0;
+	 int count = history_count;
+	 for (count = history_count; count >= 0; count--)
 	 {
-		 sum += error_history[i];
+		 pos = (current_buffer_pos - (history_count - count)) % history_count;
+		 sum += error_history[pos];
 	 }
 	 return sum;
  }
-
  // Conceptually, the weighted sum errors will 'fade' out, previous errors and emphasise negative gradients, experimental
 
  /* return a proportional value related to the age of the reading, more recent, more weight */
