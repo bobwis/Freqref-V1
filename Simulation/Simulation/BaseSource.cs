@@ -6,9 +6,9 @@
 
         protected int jitter;
 
-        public virtual double GetCount(double  dt)
+        public virtual long GetCount(double  dt)
         {
-            return (double) CurrentFreq * dt;
+            return (long) (CurrentFreq * dt);
         }
     }
 }
