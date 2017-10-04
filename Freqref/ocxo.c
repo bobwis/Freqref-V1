@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include "timeutils.h"
 #include "ocxo.h"
+#include "pid.h"
 
 #define __delay_cycles __builtin_avr_delay_cycles
 
@@ -51,6 +52,20 @@ void spiwrite16(uint16_t data)
 		;
 	}
 	CS_DAC_set_level(high);
+}
+
+// set the dac to the ocxo and wait a bit for the ocxo to generate the new frequency before returning
+void setdacandwait(int i)
+{
+	int cha, chb;
+	uint_fast64_t now;
+
+	i &= 0x0fff;
+	cha = 0x1000 | i;	// 50 %
+	spiwrite16(cha);    // chan A
+//	printf("setdacandwait DAC %d\n\r",i);
+	spiwrite16(0x9000 | 2048);    // ch B
+	delay_ms(1250);		// dac=>ocxo output settle
 }
 
 //#undef DEBUGDAC
@@ -186,7 +201,7 @@ void testcounters()
 }
 #endif
 
-
+#if 0
 // proportional ocxo control
 // the most basic algorithm
 // this gets called periodically
@@ -250,22 +265,103 @@ void propocxo()
 		}
 
 		if (dacval > 0xfff)
-		dacval = 0xfff;
+			dacval = 0xfff;
 		
 		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
 		printf("P ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%d\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
 	}
 }
+#endif
 
-void setdacandwait(int i)
+// proportional ocxo control version 2
+// nearly the most basic algorithm
+// this gets called periodically
+void prop2ocxo()
 {
-	int cha, chb;
-	cha = 0x1000 | 2000;	// 50 %
-	spiwrite16(cha);    // chan A
-	printf("DAC %d\n\r",i);
-	spiwrite16(0x8000 | 0x1000 | i);    // analog into tcxo
-	delay_ms(20000);
+	int err;
+	unsigned int magerr;
+	static uint64_t lasttime = 0L;
+	uint16_t integral[8], sum;			// used for low pass filtering at extreme counts
+	uint8_t intcount = 0;		// count of errors stored in integral
+
+	if ((lasttime + ocxointerval) < msectime())
+	{
+		lasttime = msectime();
+		capturecnt();
+		ocxocount = read32cnt(0);
+		gpscount = read32cnt(1);
+		int i, scale;
+		
+		err = gpscount-ocxocount;		// pos means ocxo is slower, so dac needs increase
+
+		magerr = abs(err);
+
+		if (magerr > 3)
+		{
+			ocxointerval = (ocxointerval > 4096) ? ocxointerval >> 1 : 2048;	// reduce time by half
+		}
+		else
+		if (magerr <= 2)
+		{
+			ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) :  MAXCNT;		// add 100% more time
+		}
+
+		ocxounlock = (magerr <= 1) ? false : true;			// front panel warning lamp
+
+		scale = (420L - ((ocxointerval*4L) / 1000L)) / 8;
+		if (scale < 1)
+		{
+			scale = 1;
+		}
+		magerr =  magerr * scale;		// scale
+
+		if (magerr > 2000)
+		{
+			magerr = 1000;		// limit dac step size
+		}
+
+		if (err < 0)
+		{
+			dacval = dacval - magerr;
+		}
+		else if (err > 0)
+		{
+			dacval = dacval + magerr;
+		}
+
+		if (dacval > 0xfff)
+		dacval = 0xfff;
+		
+		if (ocxointerval == MAXCNT)		// we are tracking over longest interval
+		{
+		  storeError(err);
+		  for (i=sizeof(integral-2); i>0; i--)
+		  {
+			integral[i+1] = integral[i];		// move entries along
+		  }
+		  integral[0] = err << sizeof(integral);	// add the latest one, scaled up
+		  sum = 0;
+		  for (i=0; i < sizeof(integral); i++)
+		  {
+			sum = sum + (integral[i] >> i);
+		  }
+		  err = (uint8_t) (sum >> sizeof(integral));
+		  printf("smoothing olderr=%d, newerr=%d\n\r",err,(sum >> sizeof(integral)));
+		}
+		else
+		{
+			for (i=0; i < sizeof(integral); i++)
+			{
+				integral[i] = 0;
+			}
+		}
+		setdacandwait(dacval);
+		resetcnt();		// zero the counters, start again
+		printf("P2 ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%d\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
+	}
 }
+
+
 
 #if 0
 // tracking ocxo control
@@ -279,6 +375,7 @@ void trackocxo()
 	long int err;
 	unsigned int magerr;
 	static uint64_t now = 0L, lasthit = 0L;
+
 	capturecnt();
 	ocxocount = read32cnt(0);
 	gpscount = read32cnt(1);
