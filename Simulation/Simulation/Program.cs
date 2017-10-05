@@ -26,19 +26,20 @@ namespace Simulation
                 var myGPS = new GPSSource();
                 var myPID = new PIDController();
                 timerThread.Start(myOCXO);
-
+   myOCXO.SetDAC(2000);
                 while (true)
                 {
-                    NOP(10);
+                    NOP(10000);
                      //simulate processing time
                     var currentSimulatedTime = tick/ SIMULATION_CLOCK_MS;  // simulate the latch
                     var gpscount = myGPS.GetCount(currentSimulatedTime);
                     var ocxcount = myOCXO.GetCount(currentSimulatedTime);
 
 
-                    //myOCXO.SetDAC(2500);
 
+                 
                     long tweak = myPID.Process(myOCXO, gpscount, ocxcount, currentSimulatedTime);
+                 
                     if (tweak != -1)
                     {
                         // everything has been done, this is just data output
@@ -56,7 +57,7 @@ namespace Simulation
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write($"diff count = {ocxcount-gpscount}\t");
                         Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write($" Tweak DACVAL = {tweak}\t");
+                        Console.Write($" DACVAL = {myOCXO.GetDAC()}\t");
                         Console.Write($"Current = {myOCXO.Current}\t");
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.Write($"Target = {myOCXO.Target} ");
