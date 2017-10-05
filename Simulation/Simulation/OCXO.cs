@@ -46,7 +46,7 @@ namespace Simulation
         {
             var roughtweak = ((double)dacVal * (double)0.00001829224);
             //   var roughtweak = ((double)dacVal * (double)10e-6 * 8);
-
+#if false
             // adjust target / woolly
             if (dacVal >= 2048)
             {
@@ -56,7 +56,10 @@ namespace Simulation
             {
                 TargetFrequency = 10e6 - roughtweak;
             }
-
+#else
+            // assume dacVal is an absolute 0..4095 , not an offset?
+            TargetFrequency = (10e6 - 5) + ((double)dacVal * (double)10 / 4096);     // 10Hz over the range
+#endif
             _currentdacVal = dacVal;
         }
 

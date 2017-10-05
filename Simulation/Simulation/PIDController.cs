@@ -23,19 +23,19 @@ namespace Simulation
          *  
          *  
          */
-        internal long GetValue(double gpscount, double ocxcount, ulong tick, long currentVal)
+#if false
+        internal long GetValuex(double gpscount, double ocxcount, ulong tick, long currentVal)
         {
             //time since last count 
             if (tick == 0) return currentVal;
             if (ocxointerval > tick)
             {
                 return -1;
-                
+
             }
 
-
             var err = (gpscount / tick) - (ocxcount/ tick);
-#if false
+
             // err is now proportional to the error over time  (doesn't matter what the timediff units are)
             var magerr =((err > 0) ? err : -err);
 
@@ -55,9 +55,9 @@ namespace Simulation
                 currentVal = 0xfff;
             return Math.Max(currentVal, 1);
         }
-
+#else
         // return a dacValue 
-        internal long GetValuex(double gpscount, double ocxcount, ulong tick, long currentVal)
+        internal long GetValue(double gpscount, double ocxcount, ulong tick, long currentVal)
         {
             //time since last count 
           
@@ -70,52 +70,24 @@ namespace Simulation
 
             if (magerr > 3)
             {
-                ocxointerval = (ocxointerval > 409600) ? ocxointerval >> 1 : 204800;    // reduce time by half
+                ocxointerval = (ocxointerval > 409600) ? ocxointerval >> 1 : 204800;    // reduce ms time by half
             }
             else
             if (magerr <= 2)
             {
-                ocxointerval = (ocxointerval <= 25600000L) ? (ocxointerval << 1) : 42000000;        // add 100% more time
+                ocxointerval = (ocxointerval <= 25600000L) ? (ocxointerval << 1) : 42000000;    // add 100% more time
             }
 
-            var scale = (420 - ((ocxointerval * 4) / 1000)) / 8;
-            if (scale < 1)
-            {
-                scale = 1;
-            }
-            magerr = magerr * scale;        // scale
+    //        if (err == 0) return -1;
 
-            if (magerr > 4000)
-            {
-                magerr = 1000;      // limit dac step size
-            }
-            if (err == 0) return -1;
             var dacval = (uint)currentVal;
-            dacval = err < 0 ? (uint) (dacval - magerr) : (uint) (dacval + magerr);
+
+            dacval = err < 0 ? (uint) (dacval - err) : (uint) (dacval + err);
 
             if (dacval > 0xfff)
                 dacval = 0xfff;
             return dacval;
-#else
-            {
-                long result, inc = 1;
-                //    result = currentVal + err;
-                result = currentVal + inc; err = inc;
-                if (result < 1)
-                    inc = 1;
-                if (result > 4094)
-                    inc = -1;
-
-                if (result > 4095)
-                    result = 4095;
-                if (result < 0)
-                    result = 0;
-                Console.Write($"currentVal = {currentVal} err = {err} result = {result} ocxointerval = {ocxointerval} tick = {tick}");
-                Console.Write($"\r\n");
-                return (result);
-            }
-#endif
         }
+#endif
     }
-
 }

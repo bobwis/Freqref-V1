@@ -243,7 +243,7 @@ void propocxo()
 			ocxounlock = true;
 		}
 
-		scale = (420L - ((ocxointerval*4L) / 1000L)) / 8;
+		scale = (420L - ((ocxointerval*4L) / 1000L)) / 8;		// ocxointerval is massive
 		if (scale < 1)
 		{
 			scale = 1;

@@ -48,8 +48,8 @@ namespace Simulation
                         Console.Write($" {elapsedTicks} ");
 
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write($"GPS count = {gpscount}");
-                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.Write($"GPS count = {gpscount} ");
+                        Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.Write($"OCXO count = {ocxcount}");
                         Console.ForegroundColor = ConsoleColor.Yellow;
 
@@ -57,7 +57,7 @@ namespace Simulation
                         Console.Write($" Tweak DACVAL = {tweak} ");
                     
                         Console.Write($"Current = {myOCXO.Current} ");
-                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.Write($"Target = {myOCXO.Target} ");
                         Console.Write($"\r\n");
 
