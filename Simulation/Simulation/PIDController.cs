@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Remoting.Messaging;
 
 namespace Simulation
 {
@@ -59,11 +60,12 @@ namespace Simulation
         // return a dacValue 
         internal long Process(OCXO ocxo, double gpscount, double ocxcount, double dT)
         {
-
-
+            // if we're here too soon and don't want to do anything, just return
             if (dT <= ocxointerval) return -1;
-            double err= (gpscount - ocxcount )/dT;     // makes the error proportional to the length of time it took to get the error
-            Console.WriteLine("ERROR = {0}  dT {1}", err, dT);
+
+            // TODO: This is the nugget, is this quantisation useful enough to get accuracy
+            double err = (gpscount - ocxcount);    
+
             ulong magerr = (ulong)((err > 0) ? err : -err);
 
             if (magerr > 3)
@@ -78,11 +80,14 @@ namespace Simulation
 
             //get the existing value
             var dacval = (uint)ocxo.GetDAC();
+            
 
-            //TODO: The sim 'works', however the error is at most 1, so this method just creeps up to the correct freq and stops
-            // 
-            dacval = err < 0 ? (uint) (dacval - err) : (uint) (dacval + err);
-
+            // we need to do something to err to bring it in proportion to dacval. Two different entities, if we want to model it properly
+            // In PID the err is the 'Correct' dacval (SP) - the 'current' dacval (PV), and the simple PID formula should give us the change in dacval
+            
+            // so we need a function which, given our count difference, returns an offset dacval
+            
+            dacval = (uint) (dacval + CountErrToOffset(err));
 
 
             if (dacval > 0xfff)
@@ -93,6 +98,14 @@ namespace Simulation
             ocxo.SetDAC(dacval);
             return dacval;
         }
+
+        int CountErrToOffset(double counterror)
+        {
+            // pasted existing
+            return (int) (counterror > 0 ? -counterror : counterror);
+
+        }
+
 #endif
     }
 }

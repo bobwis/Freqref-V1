@@ -7,7 +7,7 @@ namespace Simulation
         public GPSSource()
         {
             CurrentFreq = 10e6;
-            _addJitter = true;
+            AddJitter = true;
         }
 
     }

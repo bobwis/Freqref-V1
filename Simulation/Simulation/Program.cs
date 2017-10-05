@@ -53,7 +53,8 @@ namespace Simulation
                         Console.Write($"GPS count = {gpscount}\t");
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.Write($"OCXO count = {ocxcount}\t");
-                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write($"diff count = {ocxcount-gpscount}\t");
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.Write($" Tweak DACVAL = {tweak}\t");
                         Console.Write($"Current = {myOCXO.Current}\t");

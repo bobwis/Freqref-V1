@@ -4,7 +4,7 @@ namespace Simulation
 {
     public class OCXO :BaseSource
     {
-        private readonly double riseRate = 1;   // very fast, practically instantaneous
+        private readonly double riseRate = 0.001;   // very fast, practically instantaneous
 
         public void Tick()
         {

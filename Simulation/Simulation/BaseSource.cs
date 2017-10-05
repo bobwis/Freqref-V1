@@ -4,15 +4,32 @@ namespace Simulation
 {
     public class BaseSource
     {
-        protected bool _addJitter = false;
+        protected bool AddJitter = false;
         protected double CurrentFreq;
 
-        protected int jitter;
+        protected int Jitter;
 
-        public virtual long GetCount(double  dt)
+        public virtual double GetCount(double  dt)
         {
             var r = new Random();
-            return (long)((long)(CurrentFreq / 1000) * dt) + r.Next(2);
+            return ((CurrentFreq / 1000.0000) * dt) + r.Next(2);
         }
+        
+        public void FrequencyDrift()
+        {
+            var r = new Random();
+            if (r.Next(3) == 2)
+                CurrentFreq = CurrentFreq + (1 / CurrentFreq);
+            else if (r.Next(3) == 1)
+            {
+                CurrentFreq = CurrentFreq - (1 / CurrentFreq);
+            }
+        }
+
+
+
+
+
+
     }
 }
