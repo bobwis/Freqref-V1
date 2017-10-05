@@ -4,7 +4,7 @@ namespace Simulation
 {
     public class OCXO :BaseSource
     {
-        private readonly double riseRate = 0.0001;
+        private readonly double riseRate = 1;   // very fast, practically instantaneous
 
         public void Tick()
         {
@@ -44,7 +44,7 @@ namespace Simulation
         // Sets the target frequency, where we'll be moving to, but not instantaneous
         public void TweakInput(long dacVal)
         {
-            var roughtweak = ((double)dacVal * (double)0.001829224);
+            var roughtweak = ((double)dacVal * (double)0.00001829224);
             //   var roughtweak = ((double)dacVal * (double)10e-6 * 8);
 
             // adjust target / woolly

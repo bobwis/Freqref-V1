@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Runtime.Remoting.Messaging;
 
 namespace Simulation
 {
     public class PIDController
     {
-        private ulong lastTick = 0;
         private ulong ocxointerval = 2048;
 
 
@@ -29,26 +27,24 @@ namespace Simulation
         {
             //time since last count 
             if (tick == 0) return currentVal;
-            var timediff = tick - lastTick;
-
-            if (ocxointerval > timediff)
+            if (ocxointerval > tick)
             {
                 return -1;
                 
             }
 
-                lastTick = tick;
-            var err = (gpscount / timediff )- (ocxcount/ timediff );
+                
+            var err = (gpscount / tick) - (ocxcount/ tick);
 
             // err is now proportional to the error over time  (doesn't matter what the timediff units are)
             var magerr =((err > 0) ? err : -err);
 
-            if (magerr > 0.1)
+            if (magerr > 0.3)
             {
                 ocxointerval = (ocxointerval > 4096) ? ocxointerval >> 1 : 2048;    // reduce time by half
             }
             else
-            if (magerr <= 0.001)
+            if (magerr <= 0.3)
             {
                 ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) : 420000;        // add 100% more time
             }
@@ -68,10 +64,8 @@ namespace Simulation
             if (tick == 0) return currentVal;
             
             var err = (long)gpscount - (long)ocxcount;
-
-            ulong timediff = tick - lastTick;
-            lastTick = tick;
-            if (timediff <= ocxointerval) return -1;
+ 
+            if (tick <= ocxointerval) return -1;
             ulong magerr = (ulong)((err > 0) ? err : -err);
 
             if (magerr > 3)

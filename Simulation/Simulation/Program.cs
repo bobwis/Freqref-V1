@@ -15,16 +15,16 @@ namespace Simulation
 
         private static ulong tick = 0;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var timerThread = new Thread(TickTock);
-            OCXO myOCXO = new OCXO();
+            var myOCXO = new OCXO();
             var myGPS = new GPSSource();
             var myPID = new PIDController();
             timerThread.Start(myOCXO);
            
             
-            using (StreamWriter file = new StreamWriter("output.csv"))
+            using (var file = new StreamWriter("output.csv"))
             {
                 while (true)
                 {
@@ -43,7 +43,7 @@ namespace Simulation
 
                         long elapsedTicks = currentDate.Ticks - centuryBegin.Ticks;
 
-                        Console.Write($"Tick {currentSimulatedTime } ");
+                        Console.Write($"INterval {currentSimulatedTime } ");
 
                         Console.Write($" {elapsedTicks} ");
 
@@ -72,7 +72,6 @@ namespace Simulation
                     }
                 }
             }
-            return;
         }
 
         // model time as a physical constant outside the model
