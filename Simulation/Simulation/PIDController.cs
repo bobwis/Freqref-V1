@@ -4,7 +4,7 @@ namespace Simulation
 {
     public class PIDController
     {
-        private ulong ocxointerval = 2048;
+        private ulong ocxointerval = 2000; /* 2048;*/
 
 
         /* problem with discrete error count in the current system is it doesn't account for the time it took to get the error 
@@ -33,9 +33,9 @@ namespace Simulation
                 
             }
 
-                
-            var err = (gpscount / tick) - (ocxcount/ tick);
 
+            var err = (gpscount / tick) - (ocxcount/ tick);
+#if false
             // err is now proportional to the error over time  (doesn't matter what the timediff units are)
             var magerr =((err > 0) ? err : -err);
 
@@ -96,6 +96,25 @@ namespace Simulation
             if (dacval > 0xfff)
                 dacval = 0xfff;
             return dacval;
+#else
+            {
+                long result, inc = 1;
+                //    result = currentVal + err;
+                result = currentVal + inc; err = inc;
+                if (result < 1)
+                    inc = 1;
+                if (result > 4094)
+                    inc = -1;
+
+                if (result > 4095)
+                    result = 4095;
+                if (result < 0)
+                    result = 0;
+                Console.Write($"currentVal = {currentVal} err = {err} result = {result} ocxointerval = {ocxointerval} tick = {tick}");
+                Console.Write($"\r\n");
+                return (result);
+            }
+#endif
         }
     }
 
