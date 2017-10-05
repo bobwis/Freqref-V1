@@ -57,11 +57,13 @@ namespace Simulation
         }
 #else
         // return a dacValue 
-        internal long Process(OCXO ocxo, double gpscount, double ocxcount, ulong tick)
+        internal long Process(OCXO ocxo, double gpscount, double ocxcount, double dT)
         {
-            var err = (gpscount / tick) - (ocxcount / tick);
 
-            if (tick <= ocxointerval) return -1;
+
+            if (dT <= ocxointerval) return -1;
+            double err= (gpscount - ocxcount )/dT;     // makes the error proportional to the length of time it took to get the error
+            Console.WriteLine("ERROR = {0}  dT {1}", err, dT);
             ulong magerr = (ulong)((err > 0) ? err : -err);
 
             if (magerr > 3)
@@ -71,11 +73,14 @@ namespace Simulation
             else
             if (magerr <= 2)
             {
-                ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) : 420000;    // add 100% more time
+                ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) : 4200000;    // add 100% more time
             }
 
+            //get the existing value
             var dacval = (uint)ocxo.GetDAC();
 
+            //TODO: The sim 'works', however the error is at most 1, so this method just creeps up to the correct freq and stops
+            // 
             dacval = err < 0 ? (uint) (dacval - err) : (uint) (dacval + err);
 
 
@@ -83,6 +88,8 @@ namespace Simulation
             if (dacval > 0xfff)
                 dacval = 0xfff;
 
+
+            // SetDac sets absolute value, which results in absolute frequency, which isn't realistic
             ocxo.SetDAC(dacval);
             return dacval;
         }

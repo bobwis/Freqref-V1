@@ -66,7 +66,7 @@ namespace Simulation
 
 
 
-        internal long GetDAC()
+        public long GetDAC()
         {
             return _currentdacVal;
         }

@@ -29,7 +29,7 @@ namespace Simulation
 
                 while (true)
                 {
-                    NOP(100);
+                    NOP(10);
                      //simulate processing time
                     var currentSimulatedTime = tick/ SIMULATION_CLOCK_MS;  // simulate the latch
                     var gpscount = myGPS.GetCount(currentSimulatedTime);
