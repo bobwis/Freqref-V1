@@ -57,35 +57,33 @@ namespace Simulation
         }
 #else
         // return a dacValue 
-        internal long GetValue(double gpscount, double ocxcount, ulong tick, long currentVal)
+        internal long Process(OCXO ocxo, double gpscount, double ocxcount, ulong tick)
         {
-            //time since last count 
-          
-            if (tick == 0) return currentVal;
-            
-            var err = (long)gpscount - (long)ocxcount;
- 
+            var err = (gpscount / tick) - (ocxcount / tick);
+
             if (tick <= ocxointerval) return -1;
             ulong magerr = (ulong)((err > 0) ? err : -err);
 
             if (magerr > 3)
             {
-                ocxointerval = (ocxointerval > 409600) ? ocxointerval >> 1 : 204800;    // reduce ms time by half
+                ocxointerval = (ocxointerval > 4096) ? ocxointerval >> 1 : 2048;    // reduce ms time by half
             }
             else
             if (magerr <= 2)
             {
-                ocxointerval = (ocxointerval <= 25600000L) ? (ocxointerval << 1) : 42000000;    // add 100% more time
+                ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) : 420000;    // add 100% more time
             }
 
-    //        if (err == 0) return -1;
-
-            var dacval = (uint)currentVal;
+            var dacval = (uint)ocxo.GetDAC();
 
             dacval = err < 0 ? (uint) (dacval - err) : (uint) (dacval + err);
 
+
+
             if (dacval > 0xfff)
                 dacval = 0xfff;
+
+            ocxo.SetDAC(dacval);
             return dacval;
         }
 #endif

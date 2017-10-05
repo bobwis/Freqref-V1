@@ -42,7 +42,7 @@ namespace Simulation
         }
         // not time dependent, no lag on change of voltage
         // Sets the target frequency, where we'll be moving to, but not instantaneous
-        public void TweakInput(long dacVal)
+        public void SetDAC(long dacVal)
         {
             var roughtweak = ((double)dacVal * (double)0.00001829224);
             //   var roughtweak = ((double)dacVal * (double)10e-6 * 8);
@@ -58,6 +58,7 @@ namespace Simulation
             }
 #else
             // assume dacVal is an absolute 0..4095 , not an offset?
+
             TargetFrequency = (10e6 - 5) + ((double)dacVal * (double)10 / 4096);     // 10Hz over the range
 #endif
             _currentdacVal = dacVal;
@@ -65,7 +66,7 @@ namespace Simulation
 
 
 
-        internal long GetDACVAl()
+        internal long GetDAC()
         {
             return _currentdacVal;
         }
