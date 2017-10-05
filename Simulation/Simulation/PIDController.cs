@@ -102,7 +102,7 @@ namespace Simulation
         int CountErrToOffset(double counterror)
         {
             // pasted existing
-            return (int) (counterror > 0 ? -counterror : counterror);
+            return (int) (counterror < 0 ? -counterror : counterror);
 
         }
 
