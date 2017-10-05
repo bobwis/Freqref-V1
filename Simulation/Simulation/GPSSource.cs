@@ -6,7 +6,7 @@ namespace Simulation
     {
         public GPSSource()
         {
-            CurrentFreq = 1.0000000;
+            CurrentFreq = 10e6;
         }
 
         public override long GetCount(double dt)
