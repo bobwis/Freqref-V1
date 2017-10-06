@@ -25,6 +25,8 @@ namespace Simulation
 
         public double Target => TargetFrequency;
         public double Current => CurrentFreq;
+        public GPSSource GPS { get; set; }
+        public WorldClock WorldClock { get; set; }
 
         double _maxFreq = 10e6+5;
         double _minFreq = 10e6-5;

@@ -9,6 +9,6 @@
         }
 
 
-
+        public WorldClock WorldClock { get; set; }
     }
 }

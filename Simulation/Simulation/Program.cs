@@ -16,7 +16,7 @@ namespace Simulation
         private static void Main(string[] args)
         {
            World.BeginSimulation();
-
+            World.Join();
 
             
             using (var file = new StreamWriter("output.csv"))

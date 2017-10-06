@@ -6,6 +6,8 @@ namespace Simulation
     {
         private ulong ocxointerval = 2000; /* 2048;*/
         long scale;
+        public OCXO OCXO;
+        public GPSSource GPS { get; set; }
 
 
         /* problem with discrete error count in the current system is it doesn't account for the time it took to get the error 
