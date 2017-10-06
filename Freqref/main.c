@@ -48,7 +48,8 @@ int main(void)
 //setdacandwait(4095);
 //debugdac();
 
-		prop2ocxo(); // proxess the ocxo tracking
+		propocxo(); // proxess the ocxo tracking
+//		prop2ocxo(); // proxess the ocxo tracking
 //		trackocxo(); // proxess the ocxo tracking
 //		track2ocxo(); // proxess the ocxo tracking
 //		testocxo();

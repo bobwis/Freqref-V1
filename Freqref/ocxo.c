@@ -201,7 +201,7 @@ void testcounters()
 }
 #endif
 
-#if 0
+#if 1
 // proportional ocxo control
 // the most basic algorithm
 // this gets called periodically

@@ -45,6 +45,7 @@ namespace Simulation
                         var startDateTime= new DateTime(2017, 10, 1);
                         var currentDate = DateTime.Now;
                         var elapsedTicks = currentDate.Ticks - startDateTime.Ticks;
+#if false
                         Console.Write($"Interval {currentSimulatedTime }\t");
 
                         Console.Write($" {elapsedTicks}\t");
@@ -61,9 +62,9 @@ namespace Simulation
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.Write($"Target = {myOCXO.Target} ");
                         Console.Write($"\r\n");
-
-                        file.WriteLine(
-                            $"{myOCXO.GetDAC()} ,{tweak}, {myOCXO.Target}, {myOCXO.Current},{DateTime.Now}, {currentSimulatedTime },{elapsedTicks}");
+#endif
+   //                     file.WriteLine(
+   //                         $"{myOCXO.GetDAC()} ,{tweak}, {myOCXO.Target}, {myOCXO.Current},{DateTime.Now}, {currentSimulatedTime },{elapsedTicks}");
 
                   
                         lock (myPID)

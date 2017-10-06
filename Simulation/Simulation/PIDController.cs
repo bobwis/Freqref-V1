@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.Remoting.Messaging;
 
 namespace Simulation
@@ -6,6 +7,7 @@ namespace Simulation
     public class PIDController
     {
         private ulong ocxointerval = 2000; /* 2048;*/
+        long scale;
 
 
         /* problem with discrete error count in the current system is it doesn't account for the time it took to get the error 
@@ -78,21 +80,43 @@ namespace Simulation
                 ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) : 4200000;    // add 100% more time
             }
 
+            scale = (int)((420L - ((ocxointerval * 4L) / 1000L)) / 8);
+            if (scale < 1)
+            {
+                scale = 1;
+            }
+            magerr = magerr * (ulong)Math.Abs(scale);        // scale
+
+            if (magerr > 4000)
+            {
+                magerr = 1000;      // limit dac step size
+            }
+
             //get the existing value
             var dacval = (uint)ocxo.GetDAC();
-            
+
+            if (err < 0)
+            {
+                dacval = dacval - (uint)magerr;
+            }
+            else if (err > 0)
+            {
+                dacval = dacval + (uint)magerr;
+            }
+
 
             // we need to do something to err to bring it in proportion to dacval. Two different entities, if we want to model it properly
             // In PID the err is the 'Correct' dacval (SP) - the 'current' dacval (PV), and the simple PID formula should give us the change in dacval
             
             // so we need a function which, given our count difference, returns an offset dacval
             
-            dacval = (uint) (dacval + CountErrToOffset(err));
+ ////           dacval = (uint) (dacval + CountErrToOffset(err));
 
 
             if (dacval > 0xfff)
                 dacval = 0xfff;
 
+            Console.WriteLine($"ocxcount={ocxcount} gps={gpscount} err={err} magerr={magerr} ocxointerval={ocxointerval} dacval={dacval}");
 
             // SetDac sets absolute value, which results in absolute frequency, which isn't realistic
             ocxo.SetDAC(dacval);
