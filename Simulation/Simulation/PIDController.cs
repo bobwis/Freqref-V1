@@ -53,6 +53,8 @@ namespace Simulation
             
             if (dacval > 0xfff)
                 dacval = 0xfff;
+            //TODO: move these to different output
+            Console.Write($" err={err} magerr={magerr} ocxointerval={ocxointerval} dacval={dacval} ");
 
             OCXO.SetDAC(dacval);
 
@@ -74,16 +76,18 @@ namespace Simulation
             // a unit of time has passed of size dt (10pS)
 
             // ported from previous solution (kept ocxointerval at ms, but not required to be)
-            if (dt <= ocxointerval *100 /*100 to bring it to 10ps*/ ) return;
+//            if (dt <= ocxointerval *100 /*100 to bring it to 10ps*/ ) return;
+            if (dt <= ocxointerval * 100000 /*100 to bring it to 10ps*/ ) return;
 
             var gpscount = GPS.GetCount(dt);
             var ocxocount = OCXO.GetCount(dt);
             decimal err = gpscount - ocxocount;
 
+         //TODO: move these to different output
+         Console.WriteLine($"ocxocount={ocxocount} gps={gpscount}");
+
             Process(err, dt);
 
-            //TODO: move these to different output
-            //            Console.WriteLine($"ocxcount={ocxcount} gps={gpscount} err={err} magerr={magerr} ocxointerval={ocxointerval} dacval={dacval}");
             oldt = t;
         }
     }

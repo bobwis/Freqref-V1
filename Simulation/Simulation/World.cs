@@ -100,6 +100,7 @@ namespace Simulation
 
         public static void DisplayWorldStatus(int screenrefresh)
         {
+#if false
             Console.SetWindowPosition(0,0);
             Console.Clear();
             Console.BackgroundColor=ConsoleColor.White;
@@ -114,6 +115,7 @@ namespace Simulation
             Console.WriteLine("Jitter {0}", _myGPS.AddJitter ? "ON" : "OFF");
             Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current:F3} Target Frequency {_myOcxo.Target:F3}");
             Console.WriteLine($"DAC {_myOcxo.GetDAC():F3}  ");
+#endif
         }
 
         public static void DumpToFile(StreamWriter file)
