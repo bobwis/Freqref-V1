@@ -21,15 +21,16 @@ namespace Simulation
             
             using (var file = new StreamWriter("output.csv"))
             {
+                var startDateTime = DateTime.Now;
                 var timerThread = new Thread(TickTock);
                 var myOCXO = new OCXO();
                 var myGPS = new GPSSource();
                 var myPID = new PIDController();
                 timerThread.Start(myOCXO);
-   myOCXO.SetDAC(2000);
+   myOCXO.SetDAC(100);
                 while (true)
                 {
-                    NOP(10000);
+                    NOP(100);
                      //simulate processing time
                     var currentSimulatedTime = tick/ SIMULATION_CLOCK_MS;  // simulate the latch
                     var gpscount = myGPS.GetCount(currentSimulatedTime);
@@ -43,9 +44,8 @@ namespace Simulation
                     if (tweak != -1)
                     {
                         // everything has been done, this is just data output
-                        var startDateTime= new DateTime(2017, 10, 1);
-                        var currentDate = DateTime.Now;
-                        var elapsedTicks = currentDate.Ticks - startDateTime.Ticks;
+
+                        var elapsedTicks = DateTime.Now.Ticks - startDateTime.Ticks;
 #if false
                         Console.Write($"Interval {currentSimulatedTime }\t");
 
@@ -64,10 +64,12 @@ namespace Simulation
                         Console.Write($"Target = {myOCXO.Target} ");
                         Console.Write($"\r\n");
 #endif
-   //                     file.WriteLine(
-   //                         $"{myOCXO.GetDAC()} ,{tweak}, {myOCXO.Target}, {myOCXO.Current},{DateTime.Now}, {currentSimulatedTime },{elapsedTicks}");
+                        //                     file.WriteLine(
+                        //                         $"{myOCXO.GetDAC()} ,{tweak}, {myOCXO.Target}, {myOCXO.Current},{DateTime.Now}, {currentSimulatedTime },{elapsedTicks}");
 
-                  
+                                             file.WriteLine(
+                        $"{myOCXO.GetDAC()} , {elapsedTicks}");
+file.Flush();
                         lock (myPID)
                         {
                             tick = 0;
