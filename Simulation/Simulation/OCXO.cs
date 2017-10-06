@@ -4,7 +4,7 @@ namespace Simulation
 {
     public class OCXO :BaseSource
     {
-        private readonly decimal riseRate = 10; // 0.001;   // very fast, practically instantaneous
+        private readonly decimal riseRate =  0.001m;   // very fast, practically instantaneous
 
         public void Tick(ulong dT)
         {
@@ -24,7 +24,6 @@ namespace Simulation
         }
 
         public decimal Target => TargetFrequency;
-        public decimal Current => CurrentFreq;
         public GPSSource GPS { get; set; }
         public WorldClock WorldClock { get; set; }
 

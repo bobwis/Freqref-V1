@@ -105,12 +105,15 @@ namespace Simulation
             Console.BackgroundColor=ConsoleColor.White;
             Console.ForegroundColor= ConsoleColor.Black;
 
-            Console.WriteLine($"Resolution {RESOLUTION} Current Ticks {_wc.GetClock()} Sim Frequency {_fc.GetFrequencyInHertz() / 1e6m} MHz Refresh {screenrefresh/1000}");
+            Console.WriteLine($"Resolution {RESOLUTION} Current Ticks {_wc.GetClock()} Sim Frequency {_fc.GetFrequencyInHertz() / 1e6m:F3} MHz Refresh {screenrefresh/1000m}");
             Console.WriteLine($"------------------------------------------------------------------");
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"\r\n");
-            Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current} Target Frequency {_myOcxo.Target}");
+            Console.Write($"GPS Frequency {_myGPS.Current:F3} ");
+            Console.WriteLine("Jitter {0}", _myGPS.AddJitter ? "ON" : "OFF");
+            Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current:F3} Target Frequency {_myOcxo.Target:F3}");
+            Console.WriteLine($"DAC {_myOcxo.GetDAC():F3}  ");
         }
 
         public static void DumpToFile(StreamWriter file)

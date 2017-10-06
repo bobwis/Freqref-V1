@@ -11,7 +11,7 @@ namespace Simulation
     {
         private static void Main(string[] args)
         {
-            var refreshDelay = 1000;
+            var refreshDelay = 100;
 
             World.BeginSimulation();
 

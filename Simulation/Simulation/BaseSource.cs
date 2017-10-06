@@ -27,6 +27,7 @@ namespace Simulation
             }
         }
 
+        public decimal Current => CurrentFreq;
 
 
 
