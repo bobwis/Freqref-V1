@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Simulation
+﻿namespace Simulation
 {
     public class GPSSource : BaseSource
     {
@@ -9,6 +7,8 @@ namespace Simulation
             CurrentFreq = 10e6;
             AddJitter = true;
         }
+
+
 
     }
 }

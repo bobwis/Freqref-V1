@@ -4,7 +4,7 @@ namespace Simulation
 {
     public class BaseSource
     {
-        protected bool AddJitter = false;
+        public bool AddJitter = false;
         protected double CurrentFreq;
 
         protected int Jitter;

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.Remoting.Messaging;
 
 namespace Simulation
 {
@@ -60,7 +58,7 @@ namespace Simulation
         }
 #else
         // return a dacValue 
-        internal long Process(OCXO ocxo, double gpscount, double ocxcount, double dT)
+        internal long Process(OCXO ocxo, ulong gpscount, ulong ocxcount, double dT)
         {
             // if we're here too soon and don't want to do anything, just return
             if (dT <= ocxointerval) return -1;
@@ -68,7 +66,7 @@ namespace Simulation
             // TODO: This is the nugget, is this quantisation useful enough to get accuracy
             double err = (gpscount - ocxcount);    
 
-            ulong magerr = (ulong)((err > 0) ? err : -err);
+            var magerr = ((err > 0) ? err : -err);
 
             if (magerr > 3)
             {
@@ -85,6 +83,7 @@ namespace Simulation
             {
                 scale = 1;
             }
+
             magerr = magerr * (ulong)Math.Abs(scale);        // scale
 
             if (magerr > 4000)

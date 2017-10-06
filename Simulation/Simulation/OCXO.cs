@@ -44,7 +44,7 @@ namespace Simulation
         // Sets the target frequency, where we'll be moving to, but not instantaneous
         public void SetDAC(long dacVal)
         {
-            var roughtweak = ((double)dacVal * (double)0.00001829224);
+            var roughtweak = (dacVal * 0.00001829224);
             //   var roughtweak = ((double)dacVal * (double)10e-6 * 8);
 #if false
             // adjust target / woolly
@@ -59,7 +59,7 @@ namespace Simulation
 #else
             // assume dacVal is an absolute 0..4095 , not an offset?
 
-            TargetFrequency = (10e6 - 5) + ((double)dacVal * (double)10 / 4096);     // 10Hz over the range
+            TargetFrequency = (10e6 - 5) + (dacVal * (double)10 / 4096);     // 10Hz over the range
 #endif
             _currentdacVal = dacVal;
         }
