@@ -118,8 +118,7 @@ namespace Simulation
 
         public static void DumpToFile(StreamWriter file)
         {
-            //                     file.WriteLine(
-            //                        //                         $"{myOCXO.GetDAC()} ,{tweak}, {myOCXO.Target}, {myOCXO.Current},{DateTime.Now}, {currentSimulatedTime },{elapsedTicks}");
+            file.WriteLine($"{_myOcxo.GetDAC()} ,{_wc.MilliSeconds()}");
 
             //                                             file.WriteLine(
             //                        $"{myOCXO.GetDAC()} , {elapsedTicks}");
