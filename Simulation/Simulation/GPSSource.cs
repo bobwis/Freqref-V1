@@ -4,7 +4,7 @@
     {
         public GPSSource()
         {
-            CurrentFreq = 10e6;
+            CurrentFreq = 10e6m;
             AddJitter = true;
         }
 

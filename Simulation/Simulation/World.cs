@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using Simulation;
+using ThreadState = System.Threading.ThreadState;
 
 namespace Simulation
 {
@@ -9,16 +11,16 @@ namespace Simulation
      */
     public class DEFINES
     {
-        public static readonly decimal UltraFine = 1m;
-        public static readonly decimal Fine = 10m;
-        public static readonly decimal Normal = 100;
-        public static readonly decimal Fast = 1000;
+        public static readonly ulong UltraFine = 1;
+        public static readonly ulong Fine = 10;
+        public static readonly ulong Normal = 100;
+        public static readonly ulong Fast = 1000;
     }
 
 
     public static class World
     {
-        public static decimal RESOLUTION = DEFINES.Normal; // can 'speed up' the world, but less fine grained response
+        public static ulong RESOLUTION = DEFINES.Fast; // can 'speed up' the world, but less fine grained response
 
         public static decimal CLOCK_RATE = 1e8m; // 10ps
         static Thread _worldSimulationThread;
@@ -37,46 +39,53 @@ namespace Simulation
             }
         }
 
+        private static WorldClock _wc;
+        private static OCXO _myOcxo;
+        private static GPSSource _myGPS;
+        private static PIDController _controlDevice;
+        private static FrequencyCounter _fc;
+
+
         static void Simulation()
         {
-            var wc = new WorldClock();
+            _wc = new WorldClock();
             Console.WriteLine("Simulation Begins");
 
 
             #region Playground - Everything in here happens in a picosecond
 
             //set up the devices
-            var fc = new FrequencyCounter {StartTick = 0};
-            var myOCXO = new OCXO();
-            var myGPS = new GPSSource();
-            var controlDevice = new PIDController();
+        
+            _fc = new FrequencyCounter {StartTick = 0};
+            _myOcxo = new OCXO();
+            _myGPS = new GPSSource();
+            _controlDevice = new PIDController();
             // connect the devices
 
-            myOCXO.GPS = myGPS;
-            myGPS.WorldClock = wc;
-            myOCXO.WorldClock = wc;
-            controlDevice.GPS = myGPS;
-            controlDevice.OCXO = myOCXO;
+            _myOcxo.GPS = _myGPS;
+            _myGPS.WorldClock = _wc;
+            _myOcxo.WorldClock = _wc;
+            _controlDevice.GPS = _myGPS;
+            _controlDevice.OCXO = _myOcxo;
 
-            while (wc.Tick(RESOLUTION))
+            ulong dT = 0;
+            while (_wc.Tick(RESOLUTION))
             {
                 // the world will be driven at 1 tick per 10pS  (100Mhz)
                 // use the WorldClock to get the correct units
-
+                
                 //example frequency counter to test timing
-                fc.EndTick = (ulong) wc.GetClock();
-                fc.PulseCount += RESOLUTION; // 
-                if (wc.GetClock() % (CLOCK_RATE / 1e3m) == 0)
+                lock (_fc.Locker)  // these two calls have to be atomic or it will 'look' like drift
                 {
-                    //This is called every msecond in sim time
-                    var f = fc.GetFrequencyInHertz();
-                    Console.WriteLine("Freq = {0} Hz, {1} MHz", f, f / 1e6M);
-                    // purely to check the clock and the maths is good before we start relying on it
+                    _fc.EndTick = (ulong)_wc.GetClock();
+                    _fc.PulseCount += RESOLUTION; // 
                 }
-
-                Console.Write("{0}\r", wc.GetClock());
-
                 // nugget of simulation
+
+                _myOcxo.Tick(dT);
+                _controlDevice.Tick(dT);
+
+                dT = _wc.GetClock();
             }
 
             #endregion
@@ -88,67 +97,32 @@ namespace Simulation
         {
             _worldSimulationThread.Join();
         }
-    }
 
-
-    public class FrequencyCounter
-    {
-        public decimal StartTick;
-
-        public decimal EndTick;
-
-        public decimal PulseCount;
-
-        public decimal GetFrequencyInHertz()
+        public static void DisplayWorldStatus(int screenrefresh)
         {
-            //picoseconds per pulse
-            var unitTime_per_pulse = (EndTick - StartTick) / PulseCount;
-            return World.CLOCK_RATE * unitTime_per_pulse;
+            Console.SetWindowPosition(0,0);
+            Console.Clear();
+            Console.BackgroundColor=ConsoleColor.White;
+            Console.ForegroundColor= ConsoleColor.Black;
+
+            Console.WriteLine($"Resolution {RESOLUTION} Current Ticks {_wc.GetClock()} Sim Frequency {_fc.GetFrequencyInHertz() / 1e6m} MHz Refresh {screenrefresh/1000}");
+            Console.WriteLine($"------------------------------------------------------------------");
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"\r\n");
+            Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current} Target Frequency {_myOcxo.Target}");
+        }
+
+        public static void DumpToFile(StreamWriter file)
+        {
+            //                     file.WriteLine(
+            //                        //                         $"{myOCXO.GetDAC()} ,{tweak}, {myOCXO.Target}, {myOCXO.Current},{DateTime.Now}, {currentSimulatedTime },{elapsedTicks}");
+
+            //                                             file.WriteLine(
+            //                        $"{myOCXO.GetDAC()} , {elapsedTicks}");
+            file.Flush();
         }
     }
 
-    // 1 tick = 1 picosecond
-    public class WorldClock
-    {
-        private decimal _clock;
 
-        public decimal GetClock()
-        {
-            lock (this)
-            {
-                return _clock;
-            }
-        }
-
-        public decimal MicroSeconds()
-        {
-            return GetClock() / 1e2m;
-        }
-
-        public decimal MilliSeconds()
-        {
-            return GetClock() / 1e5m;
-        }
-
-        public decimal Seconds()
-        {
-            return GetClock() / 1e8m;
-        }
-
-        public bool Tick(decimal interval)
-        {
-            try
-            {
-                lock (this)
-                {
-                    _clock += interval;
-                }
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-            return true;
-        }
-    }
 }

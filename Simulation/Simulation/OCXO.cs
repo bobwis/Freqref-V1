@@ -4,9 +4,9 @@ namespace Simulation
 {
     public class OCXO :BaseSource
     {
-        private readonly double riseRate = 10; // 0.001;   // very fast, practically instantaneous
+        private readonly decimal riseRate = 10; // 0.001;   // very fast, practically instantaneous
 
-        public void Tick()
+        public void Tick(ulong dT)
         {
             //move incrementally towards TargetFrequency
             if (CurrentFreq != TargetFrequency) // will give chance for drift
@@ -23,19 +23,19 @@ namespace Simulation
             }
         }
 
-        public double Target => TargetFrequency;
-        public double Current => CurrentFreq;
+        public decimal Target => TargetFrequency;
+        public decimal Current => CurrentFreq;
         public GPSSource GPS { get; set; }
         public WorldClock WorldClock { get; set; }
 
-        double _maxFreq = 10e6+5;
-        double _minFreq = 10e6-5;
+        decimal _maxFreq = 10e6m+5m;
+        decimal _minFreq = 10e6m-5m;
 
         long _mindacVal = 1;   //mv
-        long _maxdavVal = 4095;
+        long _maxdacVal = 4095;
         long _currentdacVal =1000;
 
-        private double TargetFrequency;
+        private decimal TargetFrequency;
         public OCXO()
         {
 
@@ -46,27 +46,9 @@ namespace Simulation
         // Sets the target frequency, where we'll be moving to, but not instantaneous
         public void SetDAC(long dacVal)
         {
-            var roughtweak = (dacVal * 0.00001829224);
-            //   var roughtweak = ((double)dacVal * (double)10e-6 * 8);
-#if false
-            // adjust target / woolly
-            if (dacVal >= 2048)
-            {
-                TargetFrequency= 10e6 + roughtweak;
-            }
-            else
-            {
-                TargetFrequency = 10e6 - roughtweak;
-            }
-#else
-            // assume dacVal is an absolute 0..4095 , not an offset?
-
-            TargetFrequency = (10e6 - 5) + (dacVal * (double)10 / 4096);     // 10Hz over the range
-#endif
+            TargetFrequency = (_minFreq) + (dacVal * 10m / 4096m);     // 10Hz over the range
             _currentdacVal = dacVal;
         }
-
-
 
         public long GetDAC()
         {

@@ -2,17 +2,18 @@
 
 namespace Simulation
 {
-    public class BaseSource
+    public class BaseSource :Lockable
     {
         public bool AddJitter = false;
-        protected double CurrentFreq;
+        protected decimal CurrentFreq;
 
         protected int Jitter;
 
-        public virtual double GetCount(double  dt)
+        // dt is now in 10ps
+        public virtual ulong GetCount(decimal  dt)
         {
-            var r = new Random();
-            return ((CurrentFreq / 1000.0000) * dt) + r.Next(2);
+            var r= new Random();
+            return (ulong) ((CurrentFreq / 1e8m) *dt) + (ulong) (r.Next(2));
         }
         
         public void FrequencyDrift()
