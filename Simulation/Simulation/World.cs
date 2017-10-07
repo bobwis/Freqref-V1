@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Simulation;
@@ -16,13 +17,13 @@ namespace Simulation
         public static readonly ulong UltraFine = 1;
         public static readonly ulong Fine = 10;
         public static readonly ulong Normal = 100;
-        public static readonly ulong Fast = 10000;
+        public static readonly ulong Fast = 100000;
     }
 
 
     public static class World
     {
-        public static ulong RESOLUTION = 1000000; // can 'speed up' the world, but less fine grained response
+        public static ulong RESOLUTION = 100000; // can 'speed up' the world, but less fine grained response
 
         public static decimal CLOCK_RATE = 1e8m; // 10ps
         static Thread _worldSimulationThread;
@@ -110,7 +111,7 @@ namespace Simulation
         
         public static void DisplayWorldStatus(int screenrefresh)
         {
-#if false
+
             Console.SetWindowPosition(0,0);
             Console.Clear();
             Console.BackgroundColor=ConsoleColor.White;
@@ -129,9 +130,11 @@ namespace Simulation
             DoThePlot(GetLogVal);
             if (Console.KeyAvailable == true)
             {
-                
+                Console.ReadKey();
+                _myOcxo.SetDAC(_myOcxo.GetDAC()+2);
+                Console.WriteLine($"DAC DRIFT!!!!!!!!!!");
             }
-#endif
+
         }
 
         static void fillUp(char[] line, char WithChar = '\0')
