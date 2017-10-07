@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.OleDb;
 using System.Diagnostics;
-using System.Dynamic;
-using System.Security.Policy;
 
 namespace Simulation
 {
@@ -46,7 +42,7 @@ namespace Simulation
         public OCXO OCXO { get; set; }
         public GPSSource GPS { get; set; }
 
-        private ulong ocxointerval = 1000; /* 2048;*/
+        private ulong ocxointerval = 2000; /* 2048;*/
         long scale;
         
         internal long Process(decimal err, decimal dT)
@@ -69,6 +65,7 @@ namespace Simulation
                 scale = 1;
             }
 
+           
             magerr = magerr * (ulong)Math.Abs(scale);        // scale
 
             if (magerr > 4000)

@@ -7,15 +7,27 @@ namespace Simulation
         public bool AddJitter = false;
         protected decimal CurrentFreq;
 
-        protected int Jitter;
-
         // dt is now in 10ps
-        public virtual ulong GetCount(decimal  dt)
+        public virtual ulong GetCountX(decimal  dt)
         {
             var r= new Random();
-            return (ulong) ((CurrentFreq / 1e8m) * dt);// + (ulong) (r.Next(2));
+
+
+
+            var count = (ulong) ((CurrentFreq / 1e8m) * dt);
+            if (AddJitter)
+            {
+                count += (ulong) (r.Next(100)>95?1:0);
+            }
+            return count;
         }
-        
+        public virtual ulong GetCount(decimal dt)
+        {
+            var r = new Random();
+            return (ulong)((CurrentFreq / 1e8m) * dt);// + (ulong) (r.Next(2));
+             
+        }
+
         public void FrequencyDrift()
         {
             var r = new Random();

@@ -22,7 +22,7 @@ namespace Simulation
 
     public static class World
     {
-        public static ulong RESOLUTION = DEFINES.Normal; // can 'speed up' the world, but less fine grained response
+        public static ulong RESOLUTION = 1000000; // can 'speed up' the world, but less fine grained response
 
         public static decimal CLOCK_RATE = 1e8m; // 10ps
         static Thread _worldSimulationThread;
@@ -110,6 +110,7 @@ namespace Simulation
         
         public static void DisplayWorldStatus(int screenrefresh)
         {
+#if false
             Console.SetWindowPosition(0,0);
             Console.Clear();
             Console.BackgroundColor=ConsoleColor.White;
@@ -126,7 +127,11 @@ namespace Simulation
             Console.WriteLine($"OCXO Count {_controlDevice.ocxocount:F6} GPS Count {_controlDevice.gpscount:F6}");
             Console.WriteLine($"DAC {_myOcxo.GetDAC():F3}  ");
             DoThePlot(GetLogVal);
-
+            if (Console.KeyAvailable == true)
+            {
+                
+            }
+#endif
         }
 
         static void fillUp(char[] line, char WithChar = '\0')
