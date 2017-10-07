@@ -113,6 +113,7 @@ namespace Simulation
         {
 
             Console.SetWindowPosition(0,0);
+            Console.SetWindowSize(90, 60);
             Console.Clear();
             Console.BackgroundColor=ConsoleColor.White;
             Console.ForegroundColor= ConsoleColor.Black;
