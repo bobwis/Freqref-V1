@@ -126,7 +126,7 @@ namespace Simulation
             Console.WriteLine("Jitter {0}", _myGPS.AddJitter ? "ON" : "OFF");
             Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current:F3} Target Frequency {_myOcxo.Target:F3}");
             Console.WriteLine($"DAC {_myOcxo.GetDAC():F3}  ");
-            DoThePlot(Math.Sin);
+            DoThePlot(GetLogVal);
         }
 
         static void fillUp(char[] line, char WithChar = '\0')
@@ -144,18 +144,30 @@ namespace Simulation
             fillUp(LINE, WithChar: BLANK); // clear the line
             PlotFunc(TheDelegate);
         }
-        delegate double FUNC(double X);
-     
+        delegate decimal FUNC(int X);
+
+        public static decimal GetLogVal(int x)
+        {
+            var log = _controlDevice.GetLog();
+
+            int pos = log.Count - 20 + x;
+            if (pos < 0) pos = 0;
+
+            return (log[Math.Min(pos, log.Count)].data-2500)/5000m;
+            // x is the position in the last 20
+
+        }
 
         static void PlotFunc(FUNC f)
         {
-            double maxval = 9.0; //arbitrary values
-            double delta = 0.2; //size of iteration steps
+            double maxval = 20.0; //arbitrary values
             int loc;
             LINE[cHalf] = DOT; // for "horizontal" axis
-            for (double x = 0.0001; x < maxval; x += delta) //0.0001 to avoid DIV/0 error
+            for (int x = 0; x < maxval; x ++)
             {
-                loc = (int)Math.Round(f(x) * cHalf) + cHalf;
+                // fit result (0-5000) into 
+
+                loc = (int) ((f(x)* cHalf) + cHalf);
                 LINE[loc] = X;
                 Console.WriteLine(LINE);
                 fillUp(LINE, WithChar: BLANK); // blank the line, remove X point

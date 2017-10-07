@@ -47,6 +47,7 @@
     <Compile Include="BaseSource.cs" />
     <Compile Include="FrequencyCounter.cs" />
     <Compile Include="GPSSource.cs" />
+    <Compile Include="IWorldObject.cs" />
     <Compile Include="Lockable.cs" />
     <Compile Include="OCXO.cs" />
     <Compile Include="PIDController.cs" />

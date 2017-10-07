@@ -2,7 +2,7 @@
 
 namespace Simulation
 {
-    public class OCXO :BaseSource
+    public class OCXO :BaseSource, IWorldObject
     {
         private readonly decimal riseRate =  0.001m;   // very fast, practically instantaneous
 
