@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.OleDb;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Security.Policy;
 
@@ -45,7 +46,7 @@ namespace Simulation
         public OCXO OCXO { get; set; }
         public GPSSource GPS { get; set; }
 
-        private ulong ocxointerval = 2000; /* 2048;*/
+        private ulong ocxointerval = 1000; /* 2048;*/
         long scale;
         
         internal long Process(decimal err, decimal dT)
@@ -100,7 +101,7 @@ namespace Simulation
 
         private ulong oldt;
 
-
+        private decimal olderr = decimal.MaxValue;
         public void Tick(ulong t)
         {
             if (OCXO == null || GPS == null)
@@ -110,24 +111,34 @@ namespace Simulation
             }
             ulong dt = t - oldt;
             // a unit of time has passed of size dt (10pS)
+            if (dt <= ocxointerval * 100000m  /*100 to bring it to 10ps*/ ) return;
 
-            // ported from previous solution (kept ocxointerval at ms, but not required to be)
-            if (dt <= ocxointerval * 100000  /*100 to bring it to 10ps*/ ) return;
-//            if (dt <= ocxointerval * 100000 /*100 to bring it to 10ps*/ ) return;
+            gpscount = GPS.GetCount(dt);
+            ocxocount = OCXO.GetCount(dt);
 
-            var gpscount = GPS.GetCount(dt);
-            var ocxocount = OCXO.GetCount(dt);
+            
             decimal err = (decimal)gpscount - ocxocount;
+
+            if (Math.Abs(err) > Math.Abs(olderr))
+            {
+                Debugger.Launch();
+            }
+            
+           
 
             //TODO: move these to different output
             Console.WriteLine($"ocxocount={ocxocount} gps={gpscount}");
 
             
             Process(err, dt);
-
-
+        
             AddLog(OCXO.GetDAC(), t);
             oldt = t;
+            olderr = err;
         }
+
+        public ulong ocxocount { get; set; }
+
+        public ulong gpscount { get; set; }
     }
 }

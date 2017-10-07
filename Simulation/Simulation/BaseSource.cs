@@ -13,7 +13,7 @@ namespace Simulation
         public virtual ulong GetCount(decimal  dt)
         {
             var r= new Random();
-            return (ulong) ((CurrentFreq / 1e8m) *dt) + (ulong) (r.Next(2));
+            return (ulong) ((CurrentFreq / 1e8m) * dt);// + (ulong) (r.Next(2));
         }
         
         public void FrequencyDrift()

@@ -4,10 +4,12 @@ namespace Simulation
 {
     public class OCXO :BaseSource, IWorldObject
     {
-        private readonly decimal riseRate =  0.001m;   // very fast, practically instantaneous
+        private readonly decimal riseRate = 10m;// 0.001m;   // very fast, practically instantaneous
 
         public void Tick(ulong dT)
         {
+            CurrentFreq = TargetFrequency;
+            return;
             //move incrementally towards TargetFrequency
             if (CurrentFreq != TargetFrequency) // will give chance for drift
             {
@@ -27,8 +29,8 @@ namespace Simulation
         public GPSSource GPS { get; set; }
         public WorldClock WorldClock { get; set; }
 
-        decimal _maxFreq = 10e6m+5m;
-        decimal _minFreq = 10e6m-5m;
+        decimal _maxFreq = 10e6m+3.5m;
+        decimal _minFreq = 10e6m-3.5m;
 
         long _mindacVal = 1;   //mv
         long _maxdacVal = 4095;
@@ -45,7 +47,8 @@ namespace Simulation
         // Sets the target frequency, where we'll be moving to, but not instantaneous
         public void SetDAC(long dacVal)
         {
-            TargetFrequency = (_minFreq) + (dacVal * 10m / 4096m);     // 10Hz over the range
+            var responseStep = (7m / 4096m);
+            TargetFrequency = (_minFreq) + (dacVal * responseStep)  - responseStep;     // 10Hz over the range
             _currentdacVal = dacVal;
         }
 

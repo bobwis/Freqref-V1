@@ -22,7 +22,7 @@ namespace Simulation
 
     public static class World
     {
-        public static ulong RESOLUTION = DEFINES.Fast; // can 'speed up' the world, but less fine grained response
+        public static ulong RESOLUTION = DEFINES.Normal; // can 'speed up' the world, but less fine grained response
 
         public static decimal CLOCK_RATE = 1e8m; // 10ps
         static Thread _worldSimulationThread;
@@ -110,8 +110,6 @@ namespace Simulation
         
         public static void DisplayWorldStatus(int screenrefresh)
         {
-
-#if false
             Console.SetWindowPosition(0,0);
             Console.Clear();
             Console.BackgroundColor=ConsoleColor.White;
@@ -122,12 +120,13 @@ namespace Simulation
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"\r\n");
-            Console.Write($"GPS Frequency {_myGPS.Current:F3} ");
+            Console.Write($"GPS Frequency {_myGPS.Current:F6} ");
             Console.WriteLine("Jitter {0}", _myGPS.AddJitter ? "ON" : "OFF");
-            Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current:F3} Target Frequency {_myOcxo.Target:F3}");
+            Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current:F6} Target Frequency {_myOcxo.Target:F6}");
+            Console.WriteLine($"OCXO Count {_controlDevice.ocxocount:F6} GPS Count {_controlDevice.gpscount:F6}");
             Console.WriteLine($"DAC {_myOcxo.GetDAC():F3}  ");
             DoThePlot(GetLogVal);
-#endif
+
         }
 
         static void fillUp(char[] line, char WithChar = '\0')
@@ -150,18 +149,23 @@ namespace Simulation
         public static decimal GetLogVal(int x)
         {
             var log = _controlDevice.GetLog();
+            if (log.Count > 0)
+            {
 
-            int pos = log.Count - 20 + x;
-            if (pos < 0) pos = 0;
+                int pos = log.Count - 40 + x;
+                if (pos < 0) pos = 0;
 
-            return (log[Math.Min(pos, log.Count)].data-2048)/4096m;
+                return (log[Math.Min(pos, log.Count)].data - 2048) / 1024m;
+
+            }
+            return 0;
             // x is the position in the last 20
 
         }
 
         static void PlotFunc(FUNC f)
         {
-            double maxval = 20.0; //arbitrary values
+            double maxval = 40.0; //arbitrary values
             int loc;
             LINE[cHalf] = DOT; // for "horizontal" axis
             for (int x = 0; x < maxval; x ++)
