@@ -268,7 +268,10 @@ void propocxo()
 			dacval = 0xfff;
 		
 		setdacandwait(dacval);    // adjust voltage into tcxo control
-		printf("P ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%d\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
+//		printf("P ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%u\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
+
+		printf("\"uptime\",%lu,\"ocxo\",%08lu,\"gps\",%08lu,\"err\",%d,\"magerr\",%d,\"interval\",%lu,\"DAC\",%d\n\r",
+		(unsigned long)msectime(),ocxocount,gpscount,err,magerr,ocxointerval,(unsigned)dacval);
 	}
 }
 #endif
@@ -562,7 +565,8 @@ void track2ocxo()
 		dacval = newdac;
 		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
 		ocxosettle = 2000;
-		printf("T2 DAC=%i, elapsed=%3lu ocxo=%08lu, gps=%08lu preverr=%ld \n\r",dacval,ocxointerval,ocxocount,gpscount,err);
+		printf("T2 DAC=%i, elapsed=%3lu ocxo=%08lu, gps=%08lu preverr=%ld \n\r",
+			dacval,ocxointerval,ocxocount,gpscount,err);
 	}
 }
 
