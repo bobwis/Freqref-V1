@@ -153,7 +153,7 @@ namespace Simulation
             int pos = log.Count - 20 + x;
             if (pos < 0) pos = 0;
 
-            return (log[Math.Min(pos, log.Count)].data-2500)/5000m;
+            return (log[Math.Min(pos, log.Count)].data-2048)/4096m;
             // x is the position in the last 20
 
         }
