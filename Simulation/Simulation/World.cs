@@ -16,7 +16,7 @@ namespace Simulation
         public static readonly ulong UltraFine = 1;
         public static readonly ulong Fine = 10;
         public static readonly ulong Normal = 100;
-        public static readonly ulong Fast = 1000;
+        public static readonly ulong Fast = 10000;
     }
 
 
@@ -110,8 +110,8 @@ namespace Simulation
         
         public static void DisplayWorldStatus(int screenrefresh)
         {
-            
 
+#if false
             Console.SetWindowPosition(0,0);
             Console.Clear();
             Console.BackgroundColor=ConsoleColor.White;
@@ -127,6 +127,7 @@ namespace Simulation
             Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current:F3} Target Frequency {_myOcxo.Target:F3}");
             Console.WriteLine($"DAC {_myOcxo.GetDAC():F3}  ");
             DoThePlot(GetLogVal);
+#endif
         }
 
         static void fillUp(char[] line, char WithChar = '\0')

@@ -112,15 +112,15 @@ namespace Simulation
             // a unit of time has passed of size dt (10pS)
 
             // ported from previous solution (kept ocxointerval at ms, but not required to be)
-            if (dt <= ocxointerval *100 /*100 to bring it to 10ps*/ ) return;
+            if (dt <= ocxointerval * 100000  /*100 to bring it to 10ps*/ ) return;
 //            if (dt <= ocxointerval * 100000 /*100 to bring it to 10ps*/ ) return;
 
             var gpscount = GPS.GetCount(dt);
             var ocxocount = OCXO.GetCount(dt);
-            decimal err = gpscount - ocxocount;
+            decimal err = (decimal)gpscount - ocxocount;
 
-         //TODO: move these to different output
-         Console.WriteLine($"ocxocount={ocxocount} gps={gpscount}");
+            //TODO: move these to different output
+            Console.WriteLine($"ocxocount={ocxocount} gps={gpscount}");
 
             
             Process(err, dt);
