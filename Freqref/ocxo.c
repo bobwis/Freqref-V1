@@ -65,7 +65,7 @@ void setdacandwait(int i)
 	spiwrite16(cha);    // chan A
 //	printf("setdacandwait DAC %d\n\r",i);
 	spiwrite16(0x9000 | 2048);    // ch B
-	delay_ms(1250);		// dac=>ocxo output settle
+	delay_ms(250);		// dac=>ocxo output settle
 }
 
 //#undef DEBUGDAC
@@ -267,7 +267,7 @@ void propocxo()
 		if (dacval > 0xfff)
 			dacval = 0xfff;
 		
-		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
+		setdacandwait(dacval);    // adjust voltage into tcxo control
 		printf("P ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%d\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
 	}
 }
@@ -573,7 +573,7 @@ long int getreading(unsigned int dac,unsigned long timeout)
 volatile int64_t now, targettime;
 
 		spiwrite16(0x1000 | dac);
-		delay_ms(15000L);		// wait 15 seconds for settle
+//		delay_ms(15000L);		// wait 15 seconds for settle
 
 		resetcnt();		// zero the counters and start count again
 		now = msectime();
@@ -594,11 +594,11 @@ void testocxo()
 {
 long int err;
 
-	err = getreading(0,400000L);
-//		err = getreading(0,1000L);
+//	err = getreading(0,400000L);
+		err = getreading(0,2000L);
 		printf("Test DAC=%i, ocxo=%08lu, gps=%08lu diff=%ld \n\r",0,ocxocount,gpscount,err);
 
-		err = getreading(0xfff,400000L);
-//		err = getreading(0xfff,1000L);
+//		err = getreading(0xfff,400000L);
+		err = getreading(0xfff,2000L);
 		printf("Test DAC=%i, ocxo=%08lu, gps=%08lu diff=%ld \n\r",0xfff,ocxocount,gpscount,err);
 }
