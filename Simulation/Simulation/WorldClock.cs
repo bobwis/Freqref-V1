@@ -2,13 +2,13 @@ using System;
 
 namespace Simulation
 {
-    public class WorldClock
+    public class WorldClock :Lockable
     {
         private ulong _clock;
 
         public ulong GetClock()
         {
-            lock (this)
+            lock (Locker)
             {
                 return _clock;
             }
@@ -33,7 +33,7 @@ namespace Simulation
         {
             try
             {
-                lock (this)
+                lock (Locker)
                 {
                     _clock += interval;
                 }

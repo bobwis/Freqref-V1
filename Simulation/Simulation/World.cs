@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Simulation;
@@ -98,9 +100,18 @@ namespace Simulation
             _worldSimulationThread.Join();
         }
 
+
+        const char BLANK = ' ';
+        const char DOT = '.';
+        const char X = 'x';
+        const int cMaxLineChars = 79;
+        const int cHalf = cMaxLineChars / 2;
+        static char[] LINE = new char[cMaxLineChars];
+        
         public static void DisplayWorldStatus(int screenrefresh)
         {
-#if false
+            
+
             Console.SetWindowPosition(0,0);
             Console.Clear();
             Console.BackgroundColor=ConsoleColor.White;
@@ -115,7 +126,41 @@ namespace Simulation
             Console.WriteLine("Jitter {0}", _myGPS.AddJitter ? "ON" : "OFF");
             Console.WriteLine($"OCXO Current Frequency {_myOcxo.Current:F3} Target Frequency {_myOcxo.Target:F3}");
             Console.WriteLine($"DAC {_myOcxo.GetDAC():F3}  ");
-#endif
+            DoThePlot(Math.Sin);
+        }
+
+        static void fillUp(char[] line, char WithChar = '\0')
+        {
+            for (int i = 0; i < line.Length; i++)
+            {
+                line[i] = WithChar;
+            }
+        }
+
+        static void DoThePlot(FUNC TheDelegate)
+        {
+            fillUp(LINE, WithChar: DOT); // line of dots for "vertical" axis
+            Console.WriteLine(LINE);
+            fillUp(LINE, WithChar: BLANK); // clear the line
+            PlotFunc(TheDelegate);
+        }
+        delegate double FUNC(double X);
+     
+
+        static void PlotFunc(FUNC f)
+        {
+            double maxval = 9.0; //arbitrary values
+            double delta = 0.2; //size of iteration steps
+            int loc;
+            LINE[cHalf] = DOT; // for "horizontal" axis
+            for (double x = 0.0001; x < maxval; x += delta) //0.0001 to avoid DIV/0 error
+            {
+                loc = (int)Math.Round(f(x) * cHalf) + cHalf;
+                LINE[loc] = X;
+                Console.WriteLine(LINE);
+                fillUp(LINE, WithChar: BLANK); // blank the line, remove X point
+                LINE[cHalf] = DOT; // for horizontal axis
+            }
         }
 
         public static void DumpToFile(StreamWriter file)

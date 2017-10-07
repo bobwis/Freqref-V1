@@ -1,11 +1,47 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.OleDb;
+using System.Dynamic;
+using System.Security.Policy;
 
 namespace Simulation
 {
+    public struct DataPoint
+    {
+        public ulong tick;
+        public decimal data;
+
+        public DataPoint(decimal d, ulong t)
+        {
+            tick = t;
+            data = d;
+        }
+    }
+
     public class PIDController : Lockable
     {
-        // other real world devices we know about
+        // 40 point buffer
+        private List<DataPoint> pointlog = new List<DataPoint>(100);
+
+        public List<DataPoint> GetLog()
+        {
+            lock (Locker)
+            {
+                return pointlog;
+            }
+        }
+
+        public void AddLog(decimal val, ulong tick)
+        {
+            lock(Locker)
+            {
+                pointlog.Add(new DataPoint(val,tick));
+            }
+        }
+
+
+    // other real world devices we know about
         public OCXO OCXO { get; set; }
         public GPSSource GPS { get; set; }
 
@@ -76,8 +112,8 @@ namespace Simulation
             // a unit of time has passed of size dt (10pS)
 
             // ported from previous solution (kept ocxointerval at ms, but not required to be)
-//            if (dt <= ocxointerval *100 /*100 to bring it to 10ps*/ ) return;
-            if (dt <= ocxointerval * 100000 /*100 to bring it to 10ps*/ ) return;
+            if (dt <= ocxointerval *100 /*100 to bring it to 10ps*/ ) return;
+//            if (dt <= ocxointerval * 100000 /*100 to bring it to 10ps*/ ) return;
 
             var gpscount = GPS.GetCount(dt);
             var ocxocount = OCXO.GetCount(dt);
@@ -86,8 +122,11 @@ namespace Simulation
          //TODO: move these to different output
          Console.WriteLine($"ocxocount={ocxocount} gps={gpscount}");
 
+            
             Process(err, dt);
 
+
+            AddLog(OCXO.GetDAC(), t);
             oldt = t;
         }
     }
