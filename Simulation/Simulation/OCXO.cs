@@ -29,12 +29,12 @@ namespace Simulation
         public GPSSource GPS { get; set; }
         public WorldClock WorldClock { get; set; }
 
-        decimal _maxFreq = 10e6m+3.5m;
-        decimal _minFreq = 10e6m-3.5m;
+        decimal _maxFreq = (10e6m - 0.964001048m) + 3.74625m; /* 3.615m; */
+        decimal _minFreq = (10e6m - 0.964001048m) - 3.74625m; /* 3.8775m; */
 
         long _mindacVal = 1;   //mv
         long _maxdacVal = 4095;
-        long _currentdacVal =1000;
+        long _currentdacVal = 1000;
 
         private decimal TargetFrequency;
         public OCXO()
@@ -47,7 +47,7 @@ namespace Simulation
         // Sets the target frequency, where we'll be moving to, but not instantaneous
         public void SetDAC(long dacVal)
         {
-            var responseStep = (7m / 4096m);
+            var responseStep = ((_maxFreq-_minFreq) / 4096m);
             TargetFrequency = (_minFreq) + (dacVal * responseStep)  - responseStep;     // 10Hz over the range
             _currentdacVal = dacVal;
         }

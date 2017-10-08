@@ -111,7 +111,7 @@ namespace Simulation
         
         public static void DisplayWorldStatus(int screenrefresh)
         {
-
+#if false
             Console.SetWindowPosition(0,0);
             Console.SetWindowSize(90, 60);
             Console.Clear();
@@ -135,7 +135,7 @@ namespace Simulation
                 _myOcxo.SetDAC(_myOcxo.GetDAC()+2);
                 Console.WriteLine($"DAC DRIFT!!!!!!!!!!");
             }
-
+#endif
         }
 
         static void fillUp(char[] line, char WithChar = '\0')

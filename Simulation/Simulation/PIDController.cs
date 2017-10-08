@@ -70,7 +70,7 @@ namespace Simulation
 
             if (magerr > 4000)
             {
-                magerr = 1000;      // limit dac step size
+                magerr = 4000;      // limit dac step size
             }
 
             //get the existing value
