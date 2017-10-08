@@ -8,9 +8,11 @@ namespace Simulation
     {
         public ulong tick;
         public decimal data;
+        public decimal currentError;
 
-        public DataPoint(decimal d, ulong t)
+        public DataPoint(decimal err, decimal d, ulong t)
         {
+            currentError = err;
             tick = t;
             data = d;
         }
@@ -29,11 +31,11 @@ namespace Simulation
             }
         }
 
-        public void AddLog(decimal val, ulong tick)
+        public void AddLog(DataPoint d)
         {
             lock(Locker)
             {
-                pointlog.Add(new DataPoint(val,tick));
+                pointlog.Add(d);
             }
         }
 
@@ -45,7 +47,7 @@ namespace Simulation
         private ulong ocxointerval = 2000; /* 2048;*/
         long scale;
         
-        internal long Process(decimal err, decimal dT)
+       /* internal long Process(decimal err, decimal dT)
         {
             var magerr = ((err > 0) ? err : -err);
 
@@ -88,85 +90,83 @@ namespace Simulation
             if (dacval > 0xfff)
                 dacval = 0xfff;
             //TODO: move these to different output
-            Console.Write($" err={err} magerr={magerr} ocxointerval={ocxointerval} dacval={dacval} ");
+            Console.Write($" err={err} magerr={magerr} ocxointerval={ocxointerval}");
 
             OCXO.SetDAC(dacval);
 
             // SetDac sets absolute value, which results in absolute frequency, which isn't realistic
             return dacval;
         }
-
+        */
         private ulong oldt;
 
         private decimal olderr = decimal.MaxValue;
 
-        GenericPID genPID = new GenericPID();
+        readonly GenericPID genPID = new GenericPID();
 
         public PIDController()
         {
             // set up the pid's limits
-            genPID.pvMin = 20e6m-1e5m;   // min for a 2 sec count
-            genPID.pvMax = 20e6m +1e5m;
+            genPID.pvMin = 20e6m-1e3m;   // min for a 2 sec count
+            genPID.pvMax = 20e6m +1e3m;
 
             genPID.outMax = 4096;
             genPID.outMin = 0;
 
-            genPID.kp = 1.0m;
-            genPID.ki = 1.0m;
-            genPID.kd = 1.0m;
+            genPID.kp = 20;   // rapid ramp
+            genPID.ki = 5m;   // great fun experimenting, > 1 and it will overshoot but dampen
+            genPID.kd = 0.2m;  // gentle deceleration
 
         }
 
+
+        // this is an interesting concept where we denote how close is close enough
+        private decimal TOLERANCE = 1e-5m;
+
         public void Tick(ulong t)
         {
-            if (OCXO == null || GPS == null)
-            {
-                // we haven't been set up yet, do nothing
-                return;
-            }
-            ulong dt = t - oldt;
+            if (OCXO == null || GPS == null) return;
+            var dt = t - oldt;
             // a unit of time has passed of size dt (10nS)
-            if (dt <= ocxointerval * 100000m  /*100 to bring it to 10ns*/ ) return;
+            if (dt <= (ocxointerval * 100000m ) /*100 to bring it to 10ns*/ ) return;
 
             gpscount = GPS.GetCount(dt);
             ocxocount = OCXO.GetCount(dt);
 
-#if false
+#if true
+
+            // this is the PID call, pass the two values, the interval and what to do with the result, nothing inside genPID knows anything about anything
+            var err = genPID.Compute(dt, ocxocount , gpscount , OCXO.SetDAC);
+
+            if(!World.ShowStatusScreen) Console.WriteLine($"dt = {dt} Interval = {ocxointerval}  ocxocount={ocxocount} gps={gpscount}  dacval={OCXO.GetDAC()} Err {err}" );
+            if (Math.Abs(err) < TOLERANCE)
+            {
+                ocxointerval += ocxointerval*2 ;
+            }
+            else
+            {
+                ocxointerval = 2000;
+            }
+            oldt = t;
 
 
-            // fix the dt to 2 seconds for the generic PID
-            var ratio = (2*World.CLOCK_RATE)/dt;
-            var res = genPID.Compute((ulong)(2 * World.CLOCK_RATE), ocxocount * ratio, 2 * 10e6m);
-            Console.WriteLine("PID RESULT = {0}", res);
 
-            OCXO.SetDAC((long)res);
 #else
 
 
             decimal err = (decimal)gpscount - ocxocount;
-
-            if (Math.Abs(err) > Math.Abs(olderr))
-            {
-                Debugger.Launch();
-            }
-            
-           
-
-            //TODO: move these to different output
-            Console.WriteLine($"ocxocount={ocxocount} gps={gpscount}");
-
-            
+            Console.WriteLine($"ocxocount={ocxocount} gps={gpscount}  dacval={OCXO.GetDAC()}");
             Process(err, dt);
-
-
-            AddLog(OCXO.GetDAC(), t);
+            
             oldt = t;
             olderr = err;
 #endif
+            AddLog(new DataPoint(err,OCXO.GetDAC(), t));
         }
 
         public ulong ocxocount { get; set; }
 
         public ulong gpscount { get; set; }
+        public ulong Interval => ocxointerval;
     }
 }

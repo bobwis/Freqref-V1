@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 
 namespace Simulation
@@ -11,7 +9,7 @@ namespace Simulation
     {
         private static void Main(string[] args)
         {
-            var refreshDelay = 100;
+            var refreshDelay = 250;
 
             World.BeginSimulation();
 
