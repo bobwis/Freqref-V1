@@ -28,6 +28,9 @@ namespace Simulation
         {
             _worldSimulationThread = new Thread(Simulation);
             _worldSimulationThread.Start();
+            
+            Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
+            Console.SetWindowPosition(0, 0);
         }
 
         public static void EndSimulation()
@@ -117,8 +120,6 @@ namespace Simulation
             {
                 lock (_fc.Locker)
                 {
-                    Console.SetWindowPosition(0, 0);
-                    Console.SetWindowSize(90, 60);
                     Console.Clear();
                     Console.BackgroundColor = ConsoleColor.White;
                     Console.ForegroundColor = ConsoleColor.Black;
