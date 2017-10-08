@@ -14,7 +14,7 @@
 #define low false
 #define high true
 
-#define REFVAL 1200	//	2580	// DAC approx 10MHz reference level
+#define REFVAL 0  // 4095	//	2580	// DAC approx 10MHz reference level (EEPROM eventually)
 #define MAXCNT 420000	// close to 2^32, the size of the 32 bit ocxo and gps counters
 
 extern unsigned long ocxocount, gpscount, ocxointerval;

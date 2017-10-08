@@ -114,7 +114,7 @@ bool ocxoinit()
 	//	debugdac();
 	dacval = REFVAL;
 	spiwrite16(0x1000 | dacval);    // mid-ish voltage into tcxo control
-	ocxointerval = 2000L;		// two seconds
+	ocxointerval = 1024L;		// milli-seconds
 	resetcnt();
 	ocxounlock = true;
 	return(true);
@@ -201,27 +201,48 @@ void testcounters()
 }
 #endif
 
+
 #if 1
 // proportional ocxo control
 // the most basic algorithm
 // this gets called periodically
 void propocxo()
 {
-	int err;
+	int i, err, lasterr, glitch;
 	unsigned int magerr;
-	static uint64_t lasttime = 0L;
-
-	if ((lasttime + ocxointerval) < msectime())
+	static uint64_t lasttime = 0L, lastcheck = 0;
+	int scale;
+		
+	if ((lastcheck + 10000) < msectime())		// we are going to do a quick check anyway
 	{
-		lasttime = msectime();
+		lastcheck = msectime();
 		capturecnt();
 		ocxocount = read32cnt(0);
 		gpscount = read32cnt(1);
-		int scale;
-		
-		resetcnt();		// zero the counters
 		err = gpscount-ocxocount;		// pos means ocxo is slower, so dac needs increase
+		if (abs(err) >= 3)
+		{
+			lasttime = 0L;		// force processing early
+		}
+	}
 
+	if ((lasttime + ocxointerval) < msectime())
+	{
+		lasterr = 55555;
+		for (i=0; i<5; i++)
+		{
+			glitch = i;
+			lasttime = msectime();
+			capturecnt();
+			ocxocount = read32cnt(0);
+			gpscount = read32cnt(1);
+			err = gpscount-ocxocount;		// pos means ocxo is slower, so dac needs increase
+			if (err == lasterr)
+				break;						// last two readings have same error - therefore probablt no clock timing glitch?
+			lasterr = err;
+		}
+
+		resetcnt();		// zero the counters
 		magerr = abs(err);
 
 		if (magerr > 3)
@@ -234,25 +255,18 @@ void propocxo()
 			ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) :  420000;		// add 100% more time
 		}
 
-		if (magerr <= 1)
-		{
-			ocxounlock = false;
-		}
-		else
-		{
-			ocxounlock = true;
-		}
+		ocxounlock = (magerr <= 1) ? false : true;			// front panel warning lamp
 
-		scale = (420L - ((ocxointerval*4L) / 1000L)) / 8;		// ocxointerval is massive
+		scale = (540L - ((ocxointerval*4L) / 1000L)) / 8;		// ocxointerval is massive
 		if (scale < 1)
 		{
 			scale = 1;
 		}
 		magerr =  magerr * scale;		// scale
 
-		if (magerr > 4000)
+		if (magerr > 4095)
 		{
-			magerr = 1000;		// limit dac step size
+			magerr = 4095;		// limit dac step size
 		}
 
 		if (err < 0)
@@ -270,8 +284,8 @@ void propocxo()
 		setdacandwait(dacval);    // adjust voltage into tcxo control
 //		printf("P ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%u\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
 
-		printf("\"uptime\",%lu,\"ocxo\",%08lu,\"gps\",%08lu,\"err\",%d,\"magerr\",%d,\"interval\",%lu,\"DAC\",%d\n\r",
-		(unsigned long)msectime(),ocxocount,gpscount,err,magerr,ocxointerval,(unsigned)dacval);
+		printf("\"uptime\",%lu,\"ocxo\",%08lu,\"gps\",%08lu,\"err\",%d,\"scale\",%d,\"magerr\",%d,\"interval\",%lu,\"DAC\",%d,\"glitch\",%d\n\r",
+		(unsigned long)msectime(),ocxocount,gpscount,err,scale,magerr,ocxointerval,(unsigned)dacval,glitch-1);
 	}
 }
 #endif
