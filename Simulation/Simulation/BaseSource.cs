@@ -7,7 +7,7 @@ namespace Simulation
         public bool AddJitter = false;
         protected decimal CurrentFreq;
 
-        // dt is now in 10ps
+        // dt is now in 10ns
         public virtual ulong GetCountX(decimal  dt)
         {
             var r= new Random();

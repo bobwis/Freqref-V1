@@ -25,7 +25,7 @@ namespace Simulation
     {
         public static ulong RESOLUTION = 100000; // can 'speed up' the world, but less fine grained response
 
-        public static decimal CLOCK_RATE = 1e8m; // 10ps
+        public static decimal CLOCK_RATE = 1e8m; // 10ns
         static Thread _worldSimulationThread;
 
         public static void BeginSimulation()
@@ -74,7 +74,7 @@ namespace Simulation
             ulong dT = 0;
             while (_wc.Tick(RESOLUTION))
             {
-                // the world will be driven at 1 tick per 10pS  (100Mhz)
+                // the world will be driven at 1 tick per 10nS  (100Mhz)
                 // use the WorldClock to get the correct units
                 
                 //example frequency counter to test timing
@@ -155,6 +155,8 @@ namespace Simulation
         }
         delegate decimal FUNC(int X);
 
+
+        private static  int TARGETDAC = 2574;
         public static decimal GetLogVal(int x)
         {
             var log = _controlDevice.GetLog();
@@ -164,7 +166,7 @@ namespace Simulation
                 int pos = log.Count - 40 + x;
                 if (pos < 0) pos = 0;
 
-                return (log[Math.Min(pos, log.Count)].data - 2048) / 1024m;
+                return (log[Math.Min(pos, log.Count)].data - TARGETDAC) / 1024m;
 
             }
             return 0;
@@ -182,6 +184,8 @@ namespace Simulation
                 // fit result (0-5000) into 
 
                 loc = (int) ((f(x)* cHalf) + cHalf);
+                if (loc < 0) loc = 0;
+                if (loc > 78) loc = 78;
                 LINE[loc] = X;
                 Console.WriteLine(LINE);
                 fillUp(LINE, WithChar: BLANK); // blank the line, remove X point

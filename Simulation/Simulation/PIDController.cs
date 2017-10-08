@@ -99,6 +99,24 @@ namespace Simulation
         private ulong oldt;
 
         private decimal olderr = decimal.MaxValue;
+
+        GenericPID genPID = new GenericPID();
+
+        public PIDController()
+        {
+            // set up the pid's limits
+            genPID.pvMin = 20e6m-1e5m;   // min for a 2 sec count
+            genPID.pvMax = 20e6m +1e5m;
+
+            genPID.outMax = 4096;
+            genPID.outMin = 0;
+
+            genPID.kp = 1.0m;
+            genPID.ki = 1.0m;
+            genPID.kd = 1.0m;
+
+        }
+
         public void Tick(ulong t)
         {
             if (OCXO == null || GPS == null)
@@ -107,13 +125,24 @@ namespace Simulation
                 return;
             }
             ulong dt = t - oldt;
-            // a unit of time has passed of size dt (10pS)
-            if (dt <= ocxointerval * 100000m  /*100 to bring it to 10ps*/ ) return;
+            // a unit of time has passed of size dt (10nS)
+            if (dt <= ocxointerval * 100000m  /*100 to bring it to 10ns*/ ) return;
 
             gpscount = GPS.GetCount(dt);
             ocxocount = OCXO.GetCount(dt);
 
-            
+#if false
+
+
+            // fix the dt to 2 seconds for the generic PID
+            var ratio = (2*World.CLOCK_RATE)/dt;
+            var res = genPID.Compute((ulong)(2 * World.CLOCK_RATE), ocxocount * ratio, 2 * 10e6m);
+            Console.WriteLine("PID RESULT = {0}", res);
+
+            OCXO.SetDAC((long)res);
+#else
+
+
             decimal err = (decimal)gpscount - ocxocount;
 
             if (Math.Abs(err) > Math.Abs(olderr))
@@ -128,10 +157,12 @@ namespace Simulation
 
             
             Process(err, dt);
-        
+
+
             AddLog(OCXO.GetDAC(), t);
             oldt = t;
             olderr = err;
+#endif
         }
 
         public ulong ocxocount { get; set; }
