@@ -15,6 +15,7 @@
 #include "timeutils.h"
 #include "ocxo.h"
 #include "pid.h"
+#include "genpid.h"
 
 #define __delay_cycles __builtin_avr_delay_cycles
 
@@ -63,7 +64,7 @@ void setdacandwait(int i)
 	i &= 0x0fff;
 	cha = 0x1000 | i;	// 50 %
 	spiwrite16(cha);    // chan A
-//	printf("setdacandwait DAC %d\n\r",i);
+	//	printf("setdacandwait DAC %d\n\r",i);
 	spiwrite16(0x9000 | 2048);    // ch B
 	delay_ms(250);		// dac=>ocxo output settle
 }
@@ -170,6 +171,33 @@ void resetcnt()
 	CNT_CLR_set_level(high);		// re-arm the clear
 }
 
+// 'tracking' front panel indicator
+// this may be enhanced with hysteresis in future
+void reportrack(long err)
+{
+	ocxounlock = (abs(err) <= 1) ? false : true;			// front panel warning lamp
+}
+
+// check the counters are not reading an offset (usually of 1) due to their asynchronous clocks
+long deglitcherr(long err)
+{
+	long lasterr = err;
+	uint8_t i;
+
+	for (i=0; i<5; i++)			// asynchronous clock edges detection (ie poss timing count error of 1)
+	{
+		//		glitch = i;				// diagnostic
+		capturecnt();
+		ocxocount = read32cnt(0);
+		gpscount = read32cnt(1);
+		err = gpscount-ocxocount;		// pos means ocxo is slower, so dac needs increase
+		if (err == lasterr)
+		return(err);						// last two readings have same error - therefore probablt no clock timing glitch?
+		lasterr = err;
+	}
+	return(err);		// readings always changing - error
+}
+
 
 #if 0
 // test the counters
@@ -212,33 +240,35 @@ void propocxo()
 	unsigned int magerr;
 	static uint64_t lasttime = 0L, lastcheck = 0;
 	int scale;
-		
-	if ((lastcheck + 10000) < msectime())		// we are going to do a quick check anyway
+	
+	if ((ocxointerval > 16384L) && (lastcheck + 16384L) < msectime())		// we are going to do a quick check anyway
 	{
 		lastcheck = msectime();
 		capturecnt();
 		ocxocount = read32cnt(0);
 		gpscount = read32cnt(1);
 		err = gpscount-ocxocount;		// pos means ocxo is slower, so dac needs increase
-		if (abs(err) >= 3)
+		if (abs(err) >= 3)				// something made a big unexpected reading change
 		{
-			lasttime = 0L;		// force processing early
+			ocxointerval = 16384L;		// put the correct interval in
+			lasttime = 0L;				// force processing early
 		}
 	}
 
 	if ((lasttime + ocxointerval) < msectime())
 	{
 		lasterr = 55555;
-		for (i=0; i<5; i++)
+		for (i=0; i<5; i++)			// asynchronous clock edges detection (ie poss timing count error of 1)
 		{
 			glitch = i;
 			lasttime = msectime();
+			lastcheck = lasttime;
 			capturecnt();
 			ocxocount = read32cnt(0);
 			gpscount = read32cnt(1);
 			err = gpscount-ocxocount;		// pos means ocxo is slower, so dac needs increase
 			if (err == lasterr)
-				break;						// last two readings have same error - therefore probablt no clock timing glitch?
+			break;						// last two readings have same error - therefore probablt no clock timing glitch?
 			lasterr = err;
 		}
 
@@ -255,7 +285,7 @@ void propocxo()
 			ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) :  420000;		// add 100% more time
 		}
 
-		ocxounlock = (magerr <= 1) ? false : true;			// front panel warning lamp
+		reportrack(err);		// front panel lamp
 
 		scale = (540L - ((ocxointerval*4L) / 1000L)) / 8;		// ocxointerval is massive
 		if (scale < 1)
@@ -279,10 +309,10 @@ void propocxo()
 		}
 
 		if (dacval > 0xfff)
-			dacval = 0xfff;
+		dacval = 0xfff;
 		
 		setdacandwait(dacval);    // adjust voltage into tcxo control
-//		printf("P ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%u\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
+		//		printf("P ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%u\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
 
 		printf("\"uptime\",%lu,\"ocxo\",%08lu,\"gps\",%08lu,\"err\",%d,\"scale\",%d,\"magerr\",%d,\"interval\",%lu,\"DAC\",%d,\"glitch\",%d\n\r",
 		(unsigned long)msectime(),ocxocount,gpscount,err,scale,magerr,ocxointerval,(unsigned)dacval,glitch-1);
@@ -290,333 +320,162 @@ void propocxo()
 }
 #endif
 
-// proportional ocxo control version 2
-// nearly the most basic algorithm
-// this gets called periodically
-void prop2ocxo()
-{
-	int err;
-	unsigned int magerr;
-	static uint64_t lasttime = 0L;
-	uint16_t integral[8], sum;			// used for low pass filtering at extreme counts
-	uint8_t intcount = 0;		// count of errors stored in integral
 
-	if ((lasttime + ocxointerval) < msectime())
+// paul's pid
+//to use it call compute()  pass in the interval which you took the count over and the 2 counts
+void pid(void)
+{
+	static uint64_t lasttime = 0L, lastcheck = 0L, interval = 2000L;
+	int scale;
+	unsigned int dac;
+	static float TOLERANCE = 1e-5;
+	float dacf;
+	
+	if ((lastcheck + interval) < msectime())		// we are going to do a check
 	{
-		lasttime = msectime();
+		lastcheck = msectime();
+
 		capturecnt();
 		ocxocount = read32cnt(0);
 		gpscount = read32cnt(1);
-		int i, scale;
-		
-		err = gpscount-ocxocount;		// pos means ocxo is slower, so dac needs increase
 
-		magerr = abs(err);
+		dacf = compute((uint64_t) interval, (float)gpscount, (float)ocxocount);
+		dac = (uint16_t) dacf;
+		setdacandwait(dac);    // adjust voltage into tcxo control
 
-		if (magerr > 3)
+		if (abs(lasterr) < TOLERANCE)
 		{
-			ocxointerval = (ocxointerval > 4096) ? ocxointerval >> 1 : 2048;	// reduce time by half
-		}
-		else
-		if (magerr <= 2)
-		{
-			ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) :  MAXCNT;		// add 100% more time
-		}
-
-		ocxounlock = (magerr <= 1) ? false : true;			// front panel warning lamp
-
-		scale = (420L - ((ocxointerval*4L) / 1000L)) / 8;
-		if (scale < 1)
-		{
-			scale = 1;
-		}
-		magerr =  magerr * scale;		// scale
-
-		if (magerr > 2000)
-		{
-			magerr = 1000;		// limit dac step size
-		}
-
-		if (err < 0)
-		{
-			dacval = dacval - magerr;
-		}
-		else if (err > 0)
-		{
-			dacval = dacval + magerr;
-		}
-
-		if (dacval > 0xfff)
-		dacval = 0xfff;
-		
-		if (ocxointerval == MAXCNT)		// we are tracking over longest interval
-		{
-		  storeError(err);
-		  for (i=sizeof(integral-2); i>0; i--)
-		  {
-			integral[i+1] = integral[i];		// move entries along
-		  }
-		  integral[0] = err << sizeof(integral);	// add the latest one, scaled up
-		  sum = 0;
-		  for (i=0; i < sizeof(integral); i++)
-		  {
-			sum = sum + (integral[i] >> i);
-		  }
-		  err = (uint8_t) (sum >> sizeof(integral));
-		  printf("smoothing olderr=%d, newerr=%d\n\r",err,(sum >> sizeof(integral)));
+			interval += interval*2 ;
 		}
 		else
 		{
-			for (i=0; i < sizeof(integral); i++)
-			{
-				integral[i] = 0;
-			}
+			interval = 2000;
 		}
-		setdacandwait(dacval);
-		resetcnt();		// zero the counters, start again
-		printf("P2 ocxo=%08lu, gps=%08lu diff=%d, magerr=%d interval=%ld DAC=%d\n\r",ocxocount,gpscount,err,magerr,ocxointerval,dacval);
+		resetcnt();
+		printf("PID2 DAC=%i, interval=%ld, ocxo=%08lu, gps=%08lu lasterr=%f\n\r",dac,(unsigned long)interval,ocxocount,gpscount,lasterr);
 	}
 }
-
-
-
-#if 0
-// tracking ocxo control
-// this gets called periodically
-void trackocxo()
-{
-	static unsigned long lastocxo = 0, lastgps = 0;
-	static int8_t ocxohigh = 0, ocxolow = 0;
-	int newdac;
-	static int olddac = 0;
-	long int err;
-	unsigned int magerr;
-	static uint64_t now = 0L, lasthit = 0L;
-
-	capturecnt();
-	ocxocount = read32cnt(0);
-	gpscount = read32cnt(1);
-	err = (gpscount - ocxocount);
-	newdac = dacval;
-	if (err > 2047)
-	{
-		err = 2047;	// max value limit
-	}
-	if (err < -2048)
-	{
-		err = -2048;	// min
-	}
-	if (err > 0)  	// tracking possibly slipping, ocxo is slow
-	{
-		ocxohigh = 0;
-		ocxolow++;		// jitter filter
-		if (ocxolow > 5)
-		{
-			newdac = newdac + err;	// err is positive
-			if (newdac > 0xfff)
-			{
-				newdac = 0xfff;
-			}
-		}
-	}
-	else
-	if (err < 0)	// tracking possibly slipping, ocxo is fast
-	{
-		ocxolow = 0;
-		ocxohigh++;		// jitter filter
-		if (ocxohigh > 5)
-		{
-			newdac = newdac + err;	// err is negative
-			if (newdac < 0)
-			{
-				newdac = 0;
-			}
-		}
-	}
-	if (err == 0)
-	{
-		if (ocxolow > 0)
-		ocxolow--;
-		if (ocxohigh > 0)
-		ocxohigh--;
-	}
-	magerr = abs(err);
-	if (magerr <= 1)		// lost tracking flag
-	{
-		ocxounlock = false;
-	}
-	else
-	{
-		ocxounlock = true;
-	}
-	ocxointerval = (msectime()/1000L-lasthit/1000L)-3L;
-	//	if ((msectime()) > (now + 5000L) && (newdac != olddac))
-	if ((ocxocount > 20000000L) && (newdac != olddac))
-	{
-		dacval = newdac;
-		olddac = newdac;
-		now = msectime();
-		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
-		printf("T DAC=%i, elapsed=%3lu ocxo=%08lu, gps=%08lu err=%ld \n\r",dacval,ocxointerval,ocxocount,gpscount,err);
-		lasthit = now;
-		while (msectime() < (now + 3000L))	// wait for dac->oxco to settle
-		{
-			;
-		}
-		resetcnt();		// zero the counters and start reading again
-		ocxolow = 0;
-		ocxohigh = 0;
-	}
-}
-#endif
 
 // adjust the dac (scale and limit as appropriate from the error)
 // err contains gpscnt - ocxocnt
 uint16_t calcdac(long err)
 {
 	bool errneg;
-	int16_t dac;
+	uint16_t dac;
 
 	errneg = (err < 0L) ? true : false;
-	err = abs(err);		// make err positive magnitude
-	if (err > 2047)
+	err = (errneg) ? -err : err;			// make err positive magnitude
+	if (err > 2047L)
 	{
-		err = 2047;	// max value limit
+		err = 2047L;	// max value limit
 	}
 
 	dac = (errneg) ? dacval - err : dacval + err;
 	if (dac > 4095)
 	dac = 4095;
-	if (dac < 0)
-	dac = 0;
 	return(dac);
-}
-
-
-// report a error of 2 or more to 'tracking' front panel indicator
-void reportrack(long err)
-{
-	if (abs(err) > 1)		
-	{
-		ocxounlock = false;
-	}
-	else
-	{
-		ocxounlock = true;
-	}
 }
 
 
 // tracking ocxo control
 // this gets called periodically
-void track2ocxo()
+void track3ocxo()
 {
-	static int8_t onecnt = 0;
 	int newdac;
-	long int err;
-	static uint16_t ocxosettle = 0;
+	static long int err;
 	static uint64_t lasthit = 0L;
 	static uint8_t state = 0;
-	unsigned long sampleint = 100000;
-	
-	if (ocxosettle)
-	{
-		ocxosettle--;
-		delay_ms(1);
-		state = 1;
-		return;			// ocxo is settling from the last change
-	}
-	else if (state == 1)		// ocxo just finished settling
-	{
-		resetcnt();		// zero the counters and start count again
+	// state 0 == start, 1 == ocxo settling, 2== waiting to sample, 3==sample, 4=error detected
+
+	switch (state) {
+		case 0:	// start of a new cycle
+		lasthit = msectime();
 		state = 2;
-		lasthit = msectime();		// time from last counter reset
-		// shouldn't care that it will fall through to a low count reading next???
-	}
-	capturecnt();
-	ocxocount = read32cnt(0);
-	gpscount = read32cnt(1);
+		break;
 
-	err = (gpscount - ocxocount);
+		case 1:		// ocxo settling
+		delay_ms(200);
+		resetcnt();
+		state = 0;
+		break;
 
-	if (state == 2)		// only just restarted counters after a clear, waiting for a big enough count
-	{
-		if (gpscount > 2500000L)	// a few seconds worth
+		case 2:		// waiting to sample
+		if ((lasthit + 1000L) < msectime())
 		{
-			if (abs(err) > 10)
-			{
-				err *= 10;
-				goto fred;
-			}
+			lasthit = msectime();
+			state = 3;
 		}
-		if (msectime() < lasthit + sampleint)	// too early to take notice of errs
-		{
-			return;
-		}
-	fred:
-		state = 0;		// normal running
-	}
+		break;
 
-	if (abs(err) == 1)  	// tracking possibly slipping, but it could be noise +- 1 count
-	{
-		onecnt++;			// debounce the noise, only act if it happens n+1 times
-		if (onecnt > 1)		// n+1 readings in a row had a difference of one
-		{
-			onecnt = 0;
-		}
-		else
-		{
-			return;		// ignore the error this time through
-		}
-	}
-
-	reportrack(err);		// front panel lamp
-
-	newdac = calcdac(err);	// calculate the new dac value from the error
-
-	if (newdac != dacval)	
-	{
-		dacval = newdac;
-		spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
-		ocxosettle = 2000;
-		printf("T2 DAC=%i, elapsed=%3lu ocxo=%08lu, gps=%08lu preverr=%ld \n\r",
-			dacval,ocxointerval,ocxocount,gpscount,err);
-	}
-}
-
-
-// test functions
-long int getreading(unsigned int dac,unsigned long timeout)
-{
-volatile int64_t now, targettime;
-
-		spiwrite16(0x1000 | dac);
-//		delay_ms(15000L);		// wait 15 seconds for settle
-
-		resetcnt();		// zero the counters and start count again
-		now = msectime();
-		targettime = now + timeout;
-
-		while(msectime() < targettime)
-			;
-
+		case 3:		// sample
 		capturecnt();
 		ocxocount = read32cnt(0);
 		gpscount = read32cnt(1);
-		return(gpscount - ocxocount);
+		err = gpscount-ocxocount;
+		err = deglitcherr(err);
+		reportrack(err);		// front panel lamp
+		if (abs(err) > 0)  	// tracking possibly slipping
+		{
+			state = 4;
+		}
+		else
+		{
+			state = 0;
+		}
+		break;
+
+		case 4:		// error detected
+		newdac = calcdac(err);	// calculate the new dac value from the error
+		printf("T2 DAC=%i, uptime=%3lu ocxo=%08lu, gps=%08lu err=%ld \n\r",
+		dacval,(unsigned long)msectime(),ocxocount,gpscount,err);
+		if (newdac != dacval)
+		{
+			dacval = newdac;
+			spiwrite16(0x1000 | dacval);    // adjust voltage into tcxo control
+			state = 1;
+		}
+		else
+		{
+			state = 0;
+		}
+		break;
+	}	// end case
+}
+
+
+
+// test functions -----------------------------------------------------------------------------------
+long int getreading(unsigned int dac,unsigned long timeout)
+{
+	volatile int64_t now, targettime;
+
+	spiwrite16(0x1000 | dac);
+	//		delay_ms(15000L);		// wait 15 seconds for settle
+
+	resetcnt();		// zero the counters and start count again
+	now = msectime();
+	targettime = now + timeout;
+
+	while(msectime() < targettime)
+	;
+
+	capturecnt();
+	ocxocount = read32cnt(0);
+	gpscount = read32cnt(1);
+	return(gpscount - ocxocount);
 }
 
 
 // get some coefficients
 void testocxo()
 {
-long int err;
+	long int err;
 
-//	err = getreading(0,400000L);
-		err = getreading(0,2000L);
-		printf("Test DAC=%i, ocxo=%08lu, gps=%08lu diff=%ld \n\r",0,ocxocount,gpscount,err);
+	//	err = getreading(0,400000L);
+	err = getreading(0,2000L);
+	printf("Test DAC=%i, ocxo=%08lu, gps=%08lu diff=%ld \n\r",0,ocxocount,gpscount,err);
 
-//		err = getreading(0xfff,400000L);
-		err = getreading(0xfff,2000L);
-		printf("Test DAC=%i, ocxo=%08lu, gps=%08lu diff=%ld \n\r",0xfff,ocxocount,gpscount,err);
+	//		err = getreading(0xfff,400000L);
+	err = getreading(0xfff,2000L);
+	printf("Test DAC=%i, ocxo=%08lu, gps=%08lu diff=%ld \n\r",0xfff,ocxocount,gpscount,err);
 }

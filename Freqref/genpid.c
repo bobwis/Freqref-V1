@@ -6,6 +6,7 @@
  */ 
 
  #include <stdio.h>
+ #include "genpid.h"
 
  float scalevalue(float value, float valuemin, float valuemax, float scalemin, float scalemax )
  {
@@ -35,13 +36,16 @@
 
  static float integral;
  static float derivative;
- static float lasterr;
+ //static float lasterr;
 
  static uint64_t baseunit =1000;           // units in a second (in the sim thats the CLOCK), here if the intervals are in ms, it's 1000. 
 
  // sp and pv are the raw counts, in that interval, no need to touch them outside of this method
- float compute(uint64_t interval, float pv, float sp)
+ float compute(uint64_t interval, float apv, float asp)
  {
+ float pv = apv;
+ float sp = asp;
+
 	float ratio = (2 * baseunit) / interval;	
 	// is the interval in ms? This needs to be lined up with what pvMin/pvMax is.
 	sp *= ratio;

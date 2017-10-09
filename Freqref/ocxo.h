@@ -30,7 +30,12 @@ void resetcnt(void);
 // proportional control
 void propocxo();
 
-void setdacandwait(int i);
+void setdacandwait(int);
 
+/*
+Read the 4 bytes = 32 bits out of each counter
+assumes count is already latched
+*/
+unsigned long read32cnt(int);
 
 #endif /* OCXO_H_ */
