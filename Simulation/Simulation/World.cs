@@ -22,7 +22,7 @@ namespace Simulation
         public static ulong RESOLUTION = 100000; // can 'speed up' the world, but less fine grained response
 
         public static decimal CLOCK_RATE = 1e8m; // 10ns
-        static Thread _worldSimulationThread;
+        private static Thread _worldSimulationThread;
 
         public static void BeginSimulation()
         {
@@ -48,7 +48,7 @@ namespace Simulation
         private static FrequencyCounter _fc;
 
 
-        static void Simulation()
+        private static void Simulation()
         {
             _wc = new WorldClock();
             Console.WriteLine("Simulation Begins");
@@ -73,21 +73,21 @@ namespace Simulation
             ulong dT = 0;
             while (_wc.Tick(RESOLUTION))
             {
+                dT = _wc.GetClock();
                 // the world will be driven at 1 tick per 10nS  (100Mhz)
                 // use the WorldClock to get the correct units
 
                 //example frequency counter to test timing
                 lock (_fc.Locker) // these two calls have to be atomic or it will 'look' like drift
-                {
-                    _fc.EndTick = (ulong) _wc.GetClock();
-                    _fc.PulseCount += RESOLUTION; // 
-                    // nugget of simulation
+                    {
+                        _fc.EndTick = (ulong) _wc.GetClock();
+                        _fc.PulseCount += RESOLUTION; // 
+                        // nugget of simulation
 
-                    _myOcxo.Tick(dT);
-                    _controlDevice.Tick(dT);
-                }
+                        _myOcxo.Tick(dT);
+                        _controlDevice.Tick(dT);
+                    }
 
-                dT = _wc.GetClock();
             }
 
             #endregion
@@ -101,12 +101,12 @@ namespace Simulation
         }
 
 
-        const char BLANK = ' ';
-        const char DOT = '.';
-        const char X = 'x';
-        const int cMaxLineChars = 69;
-        const int cHalf = cMaxLineChars / 2;
-        static char[] LINE = new char[cMaxLineChars];
+        private const char BLANK = ' ';
+        private const char DOT = '.';
+        private const char X = 'x';
+        private const int cMaxLineChars = 69;
+        private const int cHalf = cMaxLineChars / 2;
+        private static readonly char[] LINE = new char[cMaxLineChars];
 
         private static Random r = new Random();
 
@@ -166,7 +166,7 @@ namespace Simulation
             }
         }
 
-        static void fillUp(char[] line, char WithChar = '\0')
+        private static void fillUp(char[] line, char WithChar = '\0')
         {
             for (int i = 0; i < line.Length; i++)
             {
@@ -174,7 +174,7 @@ namespace Simulation
             }
         }
 
-        static void DoThePlot()
+        private static void DoThePlot()
         {
             fillUp(LINE, WithChar: DOT); // line of dots for "vertical" axis
             Console.WriteLine(LINE);
@@ -182,13 +182,13 @@ namespace Simulation
             PlotFunc();
         }
 
-        delegate decimal FUNC(int X);
+        private delegate decimal FUNC(int X);
 
 
         private static int TARGETDAC = 2614; // graph centre
 
 
-        static void PlotFunc()
+        private static void PlotFunc()
         {
             var log = _controlDevice.GetLog();
             if (log.Count <= 0) return;

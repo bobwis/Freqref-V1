@@ -253,6 +253,12 @@
     <Compile Include="examples\src\usart_basic_example.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="genpid.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="genpid.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="include\atmel_start_pins.h">
       <SubType>compile</SubType>
     </Compile>
