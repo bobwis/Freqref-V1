@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Net.Mime;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Simulation
@@ -13,19 +15,20 @@ namespace Simulation
 
             World.BeginSimulation();
 
+
+            
             // joining the world will halt this thread
             //World.Join();
 
-            using (var file = new StreamWriter("output.csv"))
-            {
                 // this is it, nice and tidy
                 while (true)
                 {
                     Thread.Sleep(refreshDelay);
                     World.DisplayWorldStatus(refreshDelay);
-                    World.DumpToFile(file);
                 }
-            }
+         
         }
+
+         
     }
 }
