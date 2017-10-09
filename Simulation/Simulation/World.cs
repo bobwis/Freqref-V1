@@ -69,6 +69,7 @@ namespace Simulation
             _myOcxo.WorldClock = _wc;
             _controlDevice.GPS = _myGPS;
             _controlDevice.OCXO = _myOcxo;
+           
 
             ulong dT = 0;
             while (_wc.Tick(RESOLUTION))
@@ -112,7 +113,7 @@ namespace Simulation
 
 
         // Bob, just toggle this to show line by line instead
-        public static bool ShowStatusScreen = false;
+        public static bool ShowStatusScreen = true;
 
         public static void DisplayWorldStatus(int screenrefresh)
         {
@@ -142,7 +143,9 @@ namespace Simulation
                     Console.WriteLine(
                         $"DAC {_myOcxo.GetDAC():F3}  Next Interval {_controlDevice.Interval}   - PRESS D = DACVAL - ANY FOR DISTURBANCE");
                     DoThePlot();
-                    while (Console.KeyAvailable)
+                }
+            }
+            while (Console.KeyAvailable)
                     {
                         var info = Console.ReadKey();
                         if (info.Key == ConsoleKey.UpArrow)
@@ -150,6 +153,10 @@ namespace Simulation
                         {
                             _controlDevice.OCXO.FrequencyDrift();
                             Console.WriteLine($"DAC DRIFT!!!!!!!!!!\r");
+                        }
+                        else if (info.Key == ConsoleKey.P)
+                        {
+                            World.DumpToFile();
                         }
                         else if (info.Key == ConsoleKey.D)
                         {
@@ -162,9 +169,8 @@ namespace Simulation
                             _myOcxo.SetDAC(r.Next(4096));
                         }
                     }
-                }
             }
-        }
+        
 
         private static void fillUp(char[] line, char WithChar = '\0')
         {
@@ -216,13 +222,20 @@ namespace Simulation
             }
         }
 
-        public static void DumpToFile(StreamWriter file)
+        public static void DumpToFile()
         {
-            file.WriteLine($"{_myOcxo.GetDAC()} ,{_wc.MilliSeconds()}");
 
-            //                                             file.WriteLine(
-            //                        $"{myOCXO.GetDAC()} , {elapsedTicks}");
-            file.Flush();
+            using (var file = new StreamWriter("output.csv"))
+            {
+                var log = _controlDevice.GetLog();
+                if (log.Count <= 0) return;
+
+                foreach (DataPoint d in log)
+                {
+                    file.WriteLine($"{d.tick} ,{d.currentError},{d.data}");
+                }
+                file.Flush();
+            }
         }
     }
 }

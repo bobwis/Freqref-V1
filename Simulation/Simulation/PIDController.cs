@@ -44,7 +44,7 @@ namespace Simulation
         public OCXO OCXO { get; set; }
         public GPSSource GPS { get; set; }
 
-        private ulong ocxointerval = 2000; /* 2048;*/
+        private ulong ocxointerval = 2500; /* 2048;*/
         long scale;
         
        /* internal long Process(decimal err, decimal dT)
@@ -113,9 +113,9 @@ namespace Simulation
             genPID.outMax = 4096;
             genPID.outMin = 0;
 
-            genPID.kp = 20;   // rapid ramp
+            genPID.kp = 50;   // rapid ramp
             genPID.ki = 5m;   // great fun experimenting, > 1 and it will overshoot but dampen
-            genPID.kd = 0.2m;  // gentle deceleration
+            genPID.kd = 1m;  // gentle deceleration
 
         }
 
