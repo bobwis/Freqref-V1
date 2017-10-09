@@ -24,6 +24,8 @@ namespace Simulation
         {
             // locked to 2sec
             var ratio = (2 * World.CLOCK_RATE) / interval;
+
+         
             sp *= ratio;
             pv *= ratio;
 
