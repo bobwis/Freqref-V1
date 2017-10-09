@@ -37,8 +37,18 @@
  static float derivative;
  static float lasterr;
 
+ static uint64_t baseunit;            // =???
+
  float compute(uint64_t interval, float pv, float sp)
  {
+	
+	// is the interval in ms? This needs to be lined up with what pvMin/pvMax is.
+
+
+	float ratio = (2 * baseunit) / interval;
+	sp *= ratio;
+	pv *= ratio;
+
 	float err;
 	pv = clamp(pv,pvMin,pvMax);
 	pv = scalevalue(pv, pvMin, pvMax, -1.0, 1.0);
