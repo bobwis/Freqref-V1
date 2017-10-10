@@ -165,8 +165,8 @@ void drawocxo()
 		setlcdtext("ocxo.t0.txt","Tracking");
 	}
 	setlcdbin("ocxo.n0.val",ocxointerval);
-	setlcdbin("ocxo.n1.val",gpscount);
-	setlcdbin("ocxo.n2.val",ocxocount);
+	setlcdbin("ocxo.n1.val",gpscount/100L);
+	setlcdbin("ocxo.n2.val",ocxocount/100L);
 	setlcdbin("ocxo.n3.val",gpscount-ocxocount);
 	setlcdbin("ocxo.n4.val",(unsigned long)(msectime()/1000L));
 

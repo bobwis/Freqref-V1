@@ -10,6 +10,6 @@
 #define GENPID_H_
 
 float compute(uint64_t interval, float pv, float sp);
-static float lasterr;
+extern float lasterr;
 
 #endif /* GENPID_H_ */

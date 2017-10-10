@@ -38,7 +38,7 @@
 
  static float integral = 0.0f;
  static float derivative = 0.0f;
- //static float lasterr;
+ float lasterr = 0.0;
 
  static uint64_t baseunit =1000;           // units in a second (in the sim thats the CLOCK), here if the intervals are in ms, it's 1000. 
 

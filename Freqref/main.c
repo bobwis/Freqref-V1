@@ -47,9 +47,9 @@ int main(void)
 //setdacandwait(0);
 //setdacandwait(4095);
 //debugdac();
-		pid();
+//		pid();
 //		propocxo(); // proxess the ocxo tracking
-//		track3ocxo(); // proxess the ocxo tracking
+		track3ocxo(); // proxess the ocxo tracking
 //		testocxo();
 		ladder();  	// main loop to process all the modules
 	}
