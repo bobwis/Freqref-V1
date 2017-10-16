@@ -23,7 +23,7 @@ inline uint64_t msectime(void)
 // delay will be 0 < 1mSec for parameter of 1, 1mS < 2mS for parameter of 2 etc
 void delay_ms(uint16_t count)
 {
-	volatile uint64_t k,j;
+	uint64_t k,j;
 	while(1) {
 		j = msectime();
 		k = j + (uint64_t)count;

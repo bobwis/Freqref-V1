@@ -26,6 +26,37 @@
 unsigned long ocxocount, gpscount, ocxointerval;
 unsigned int dacval = REFVAL;
 bool ocxounlock = true;
+unsigned long warmupmins = 0;
+unsigned long hotstarttime = 0;
+
+// scale factor for sample times
+// sample seconds, scale
+#if 0
+static  unsigned int samscale [10][2] = {
+	{0, 300},
+	{1, 250},
+	{2, 200},
+	{5, 80},
+	{10, 40},
+	{20, 15},
+	{45, 5},
+	{75, 3},
+	{150, 2},
+	{200, 1},
+};
+#endif
+static  unsigned int samscale [10][2] = {
+	{0, 45},
+	{1, 45},
+	{2, 45},
+	{5, 45},
+	{10, 45},
+	{20, 11},		// 16sec / 1 pps start pt
+	{33, 4},
+	{49, 3},
+	{150, 2},
+	{200, 1},
+};
 
 // swap the endian of a byte
 static  unsigned char niblookup[16] = {
@@ -59,14 +90,14 @@ void spiwrite16(uint16_t data)
 void setdacandwait(int adac, int bdac)
 {
 	int cha, chb;
-	uint_fast64_t now;
 
 	adac &= 0x0fff;
 	bdac &= 0xffff;
-	cha = 0x1000 | adac;	// 50 %
+	cha = 0x1000 | adac;
+	chb = 0x9000 | bdac;
 	spiwrite16(cha);    // chan A
 	//	printf("setdacandwait DAC %d\n\r",i);
-	spiwrite16(0x9000 | bdac);    // ch B
+	spiwrite16(chb);    // chan B
 	delay_ms(250);		// dac=>ocxo output settle
 }
 
@@ -75,7 +106,7 @@ void setdacandwait(int adac, int bdac)
 void debugdac()
 {
 	int i;
-	int cha, chb;
+	int cha;
 	do
 	{
 		cha = 0x1000 | 2000;	// 50 %
@@ -165,18 +196,34 @@ void resetcnt()
 // 0x40 is /CCLR
 // 0x80 is RCLK
 {
-	CNT_CLR_set_level(high);		// ensure clr is inactive
-	__delay_cycles(5);
-	CNT_CLR_set_level(low);		// reset the counters
-	__delay_cycles(5);
-	CNT_CLR_set_level(high);		// re-arm the clear
+	for(;;)
+	{
+		CNT_CLR_set_level(high);		// ensure clr is inactive
+		__delay_cycles(25);
+		CNT_CLR_set_level(low);		// reset the counters
+		__delay_cycles(25);
+		CNT_CLR_set_level(high);		// re-arm the clear
+
+		capturecnt();		// freeze the early count
+		ocxocount = read32cnt(0);
+		gpscount = read32cnt(1);
+		if (gpscount == ocxocount)		// if they dont start out the same have another go
+		{
+			break;
+		}
+		else
+		{
+			printf("ResetCNT retried DAC=%i, ocxo=%08lu, gps=%08lu\n\r",dacval,ocxocount,gpscount);
+		}
+		delay_ms(3000);		// wait for gps counters to cover > 1 second to help reduce sequence count noise 
+	}
 }
 
 // 'tracking' front panel indicator
 // this may be enhanced with hysteresis in future
-void reportrack(long err)
+void reportrack(long err, int scale)
 {
-	ocxounlock = (abs(err) <= 1) ? false : true;			// front panel warning lamp
+	ocxounlock = (scale == 1) && (abs(err) <= 1) ? false : true;			// front panel warning lamp
 }
 
 // check the counters are not reading an offset (usually of 1) due to their asynchronous clocks
@@ -195,7 +242,7 @@ long deglitcherr(long err)
 		if ((err == lasterr) && (err == prelasterr))	// all three agree
 		{
 			if (i > 1)
-				printf(" glitch %d ",i);
+			printf(" glitch %d ",i);
 			return(err);						// last two readings have same error - therefore probable no clock timing glitch?
 		}
 		prelasterr = lasterr;
@@ -204,75 +251,121 @@ long deglitcherr(long err)
 	return(err);		// readings always changing - error
 }
 
-// sample using averaging over 16 samples
+// wait for next sample in chunks of 1/3 sec
+// keep ladder alive
+#define CHUNKTIME 333
+void sampledly(int chunk)
+{
+	ladder();
+	while (chunk)
+		{
+		delay_ms(CHUNKTIME);
+		chunk--;
+		}
+}
+
+// sample using averaging over n samples
+// need running avg to limit glitches
+#define SAMPLES	16
 long sample(void)
 {
-	long gpsup = 0, ocxoup = 0, zeroup = 0, err = 0;
-	uint8_t i;
+	long zeroup = 0, newerr = 0, err = 0, maxr, minr,  warmtime;
+	static long lasterr = 999;
+	int i, j = 0, k = 0;
 
-	for (i=0; i<32; i++)			// asynchronous clock edges detection (ie poss timing count error of 1)
+	i = 0;
+	maxr =0;
+	minr = 0;
+	while (i < SAMPLES)			// asynchronous clock edges detection (ie poss timing count error of 1)
 	{
 		capturecnt();
 		ocxocount = read32cnt(0);
 		gpscount = read32cnt(1);
 
-		if (gpscount > ocxocount)
-			gpsup += gpscount - ocxocount;		// add the error
-		else
-		if (gpscount < ocxocount)
-			ocxoup += ocxocount - gpscount;
+		newerr = gpscount - ocxocount;
+		
+		while (abs(newerr) != abs(lasterr)) 		// wait for two readings the same, or exact opposite
+		{
+			capturecnt();
+			ocxocount = read32cnt(0);
+			gpscount = read32cnt(1);
+			lasterr = newerr;
+			newerr = gpscount - ocxocount;
+			j++;
+		}
+
+		if (newerr != 0)
+		{
+			if (newerr > maxr)
+			maxr = newerr;
+			else
+			if (newerr < minr)
+			minr = newerr;
+			err = err + newerr;
+			i++;
+		}
 		else // its zero
 		{
 			zeroup++;		// this won't do much until the real error is small
+			lasterr = 0;
+			i++;	/// needed?
 		}
-		delay_ms(100);
+
+//		warmtime = ((WARMINGTIME)*60L*1000L);					// default sample in 333ms chunks time div 2
+		if ((msectime() + hotstarttime) < ((WARMINGTIME)*60L*1000L))			// not gone past warmup period
+		{
+			warmtime = (uint32_t)(msectime()+hotstarttime);			// from start up in ms
+		}
+		else
+			warmtime = ((3*60000)<<3);		// 3 lots of 333ms
+		ocxointerval = (((warmtime/(1000L*60L))>>2)*CHUNKTIME);
+		sampledly((warmtime/(1000L*60L))>>3);			// seconds delay
 	}
 
-	printf("sample: gpsup=%ld, ocxoup=%ld, zeroup=%ld,",gpsup,ocxoup,zeroup);
-	gpsup >>= 5;
-	ocxoup >>= 5;
-	zeroup >>= 5;
+	lasterr = 9999;
+	while (abs(newerr) != abs(lasterr)) 		// wait for two readings the same, or exact opposite
+	{
+		capturecnt();
+		ocxocount = read32cnt(0);		// cnts can be drifted
+		gpscount = read32cnt(1);
+		lasterr = newerr;
+		newerr = gpscount - ocxocount;
+		if (newerr == 0)
+		zeroup++;
+		err = err + newerr;
+		k++;
+		i++;
+	}
 
-	err = (gpsup-ocxoup);
-	if (zeroup > abs(err))
+	err = err + minr - maxr;		// remove the two extreme errors from the plot
+	i -= 2;
+	
+	if ((abs(err) > (SAMPLES)) && (zeroup >= 1))	// error is too big - must be glitch
+	{
+		printf("LIMIT err=%ld ",err);
 		err = 0;
+	}
 
-	printf("returning %ld,\n\r",err);	
+	printf("sample: err=%ld, zeroup=%ld, i=%d, maxr=%ld minr=%ld j=%d, k=%d ",err,zeroup,i,maxr,minr,j,k);
+
+	err /= (i>>2);		//  average all samples DIV 2
+	//	err /= i;		//  average all samples
+
+	if (zeroup > (i - (i>>2)))		// more than 75% samples were zero
+	{
+		printf("Zero wins, ");
+		hotstarttime += 60000L;		// + 1 min
+		err = 0;
+	}
+
+	printf("returning %ld\n\r",err);
 	return(err);
 }
 
+
+
+
 #if 0
-// test the counters
-void testcounters()
-{
-	unsigned int adcval;
-	int lasterr, err;
-	adcval = 2580;		// a good starting point
-	lasterr = err = 0;
-	ocxointerval = 10000L;
-	resetcnt();
-	for(;;)
-	{
-		resetcnt();
-		delay_ms((unsigned int)ocxointerval);
-		ocxocount = read32cnt(0);
-		gpscount = read32cnt(1);
-		err = gpscount-ocxocount;
-		printf("ocxo=%08lu, gps=%08lu diff=%d\n\r",ocxocount,gpscount,err);
-		ladder();
-		//	if (lasterr != err)
-		{
-			adcval = adcval+err;
-			spiwrite16(0x1000 | adcval);    // adjust voltage into tcxo control
-			printf("dac=%d\n\r",adcval);
-			lasterr = err;
-		}
-	}
-}
-#endif
-
-
-#if 1
 // proportional ocxo control
 // the most basic algorithm
 // this gets called periodically
@@ -327,7 +420,7 @@ void propocxo()
 			ocxointerval = (ocxointerval <= 256000L) ? (ocxointerval << 1) :  420000;		// add 100% more time
 		}
 
-		reportrack(err);		// front panel lamp
+		reportrack(err,scale);		// front panel lamp
 
 		scale = (540L - ((ocxointerval*4L) / 1000L)) / 8;		// scale dac correction for sample time
 		if (scale < 1)
@@ -367,8 +460,7 @@ void propocxo()
 //to use it call compute()  pass in the interval which you took the count over and the 2 counts
 void pid(void)
 {
-	static uint64_t lasttime = 0L, lastcheck = 0L, interval = 2000L;
-	int scale;
+	static uint64_t lastcheck = 0L, interval = 2000L;
 	unsigned int dac;
 	static float TOLERANCE = 1e-5;
 	float dacf;
@@ -423,13 +515,14 @@ uint16_t calcdac(long err)
 // this gets called periodically
 void track3ocxo()
 {
-	int scale;
-	static int olddac = 0;
+	static int scale, tim, i, oldbdac = 0;
+	static int scaleindex = 1, resetbackoff = 3;
+	int bdac;
 	uint16_t magerr;
 	static long int err;
 	static uint64_t lasthit = 0L, lastcap = 0, lasttime = 0;
 	static uint8_t state = 0;
-	// state 0 == start, 1 == ocxo settling, 2== waiting to sample, 3==sample, 4=error detected
+	// state 0 == start, 1 == ocxo settling, 2== waiting to sample, 3==sample, 4=error detected, 5=BDac adjustment
 
 	switch (state) {
 		case 0:	// start of a new cycle
@@ -437,14 +530,14 @@ void track3ocxo()
 		state = 2;
 		break;
 
-		case 1:		// ocxo settling
+		case 1:		// ocxo settling then reset counters
 		delay_ms(200);
 		resetcnt();
 		state = 0;
 		break;
 
 		case 2:		// waiting to sample
-		if ((lasthit + 10000L) < msectime())
+		if ((lasthit + 100) < msectime())
 		{
 			lasthit = msectime();
 			state = 3;
@@ -452,12 +545,19 @@ void track3ocxo()
 		break;
 
 		case 3:		// sample
-		capturecnt();
 		ocxointerval = msectime() - lastcap;		// sample interval time
 		lastcap = msectime();
 		err = sample();
 
-		reportrack(err);		// front panel lamp
+		if ((abs(err) < 4) && (scale <= 1))		// sub A Dac error, so use B Dac
+		{
+			state = 5;
+			break;
+		}
+
+		err /= 4;		// A dac resolution
+		
+		reportrack(err,scale);		// front panel lamp
 
 		if (abs(err) >= 1)  	// tracking possibly slipping
 		{
@@ -472,16 +572,30 @@ void track3ocxo()
 		case 4:		// error detected
 
 		magerr =  abs(err);
-		
-		scale = abs(2574 - dacval) / magerr;		// cheat
-		if (scale < 1)
+
+		tim = (unsigned long)(msectime()-(unsigned long)lasttime)/1000L;
+		scale = 1;
+		for (i=0; (i<sizeof(samscale)>>1); i++)		// error is scaled depending up last interval
 		{
-			scale = 1;
+			if (samscale[i][0] > tim)				// find optimum solution a bit quicker
+			{
+				scale = samscale[i-1][1];			// this is what we think
+				break;
+			}
+		}
+
+		if (scaleindex > (i-1))				// FIXME using i // last sample time was longer than this
+		{
+			scale = samscale[scaleindex][1];
+		}
+		else
+		{
+			scaleindex = i-1;
 		}
 
 		magerr *=  scale;		// scale
 
-		if (err < 0)
+		if (err < 0)		// dac will step down
 		{
 			dacval = dacval - magerr;
 		}
@@ -491,22 +605,110 @@ void track3ocxo()
 		}
 
 		if (dacval > 0xfff)
-			dacval = 0xfff;
+		dacval = 0xfff;
 
-		setdacandwait(dacval,2048);    // adjust voltage into tcxo control
+		if (magerr == 1)		// just one step on the big Dac
+		{
+			if (err < 0)
+			oldbdac = oldbdac + 500;	// try a smooth voltage transition
+			else
+			oldbdac = oldbdac - 500;	// by compensating 1/2 step on the B dac
 
-		printf("T3 DAC=%i, uptime=%3lu Sec, elapsed=%3lu Sec, interval=%3lu Sec, ocxo=%08lu, gps=%08lu err=%ld scale=%d\n\r",
-			dacval,(unsigned long)msectime()/1000L,(unsigned long)(msectime()-(unsigned long)lasttime)/1000L,
-			ocxointerval/1000L,ocxocount,gpscount,err,scale);
+			if ((oldbdac < 0) || (oldbdac > 4095))
+			oldbdac = dacval;
+		}
+		else
+		oldbdac = dacval;
+		
+		bdac = oldbdac;
+
+		setdacandwait(dacval,bdac);    // adjust voltage into tcxo control
+
+		printf("T3 ADAC=%i, BDAC=%i, uptime=%3lu Sec, elapsed=%3lu Sec, interval=%3lums, ocxo=%08lu, gps=%08lu err=%ld scale=%d\n\r",
+			dacval,bdac,(unsigned long)msectime()/1000L,(unsigned long)(msectime()-(unsigned long)lasttime)/1000L,
+			ocxointerval,ocxocount,gpscount,err,scale);
 		lasttime = msectime();
-		state = 1;
+		state = 1;			// reset the counters etc
+		break;
+
+		case 5:			// B dac fine adjustment
+		if (err != 0)		// err = -3 to + 3
+		{
+			bdac = dacval + err * 333;		// range -500 to +500 with -4 to +4 input
+			bdac = (bdac + oldbdac) / 2;	// average with last times
+			if (oldbdac != bdac)
+			{
+				printf("ADAC=%d BDAC=%d err=%ld \n\r",dacval,bdac,err);
+				spiwrite16(0x9000 | bdac);    // ch B
+				oldbdac = bdac;
+			}
+			if (resetbackoff == 0)
+			{
+				state = 1;			// reset the counters this time
+				resetbackoff = 3;
+			}
+			else
+			{
+				resetbackoff--;
+				state = 0;
+			}
+		}
+		else
+		state = 0;
+		break;
 
 	}	// end case
 }
 
 
-
+/****************************************************************************************************/
 // test functions -----------------------------------------------------------------------------------
+void findglitch(unsigned int adac, unsigned int bdac, unsigned long timeout)
+{
+	static unsigned long lastgps, lastocxo;
+	unsigned long gpsdiff, ocxodiff;
+	unsigned long ocxostep, gpsstep, now2;
+
+	setdacandwait(adac,bdac);
+	//		delay_ms(15000L);		// wait 15 seconds for settle
+
+	resetcnt();		// zero the counters and start count again
+
+	#define INTERVAL 200L
+	#define LIMIT 1
+
+	ocxostep = INTERVAL * 10000L;		// estimate 10MHz times interval in mSec
+	gpsstep = INTERVAL * 10000L;
+	for (;;)
+	{
+		sei();
+		delay_ms(INTERVAL);
+
+		capturecnt();
+		now2 = (unsigned long) (msectime() & 0xffffffff);
+
+		ocxocount = read32cnt(0);
+		gpscount = read32cnt(1);
+
+		ocxodiff = ocxocount - lastocxo;
+		gpsdiff = gpscount - lastgps;
+
+		if ((ocxodiff > (gpsdiff + LIMIT)) || (ocxodiff < (gpsdiff - LIMIT)))	// diff between counters
+		{
+			//			printf("x=%ld, g=%ld d=%ld\r\n",ocxostep,ocxocount - lastocxo,ocxostep-(ocxocount - lastocxo));
+			printf("now=%6lu, ocxocount=%lu, gpscount=%6lu, ocxodiff=%lu, gpsdiff=%lu err=%ld\r\n",(uint32_t)now2,ocxocount,gpscount,ocxodiff,gpsdiff,ocxodiff-gpsdiff);
+		}
+		
+		ocxostep = (ocxostep>>1) + ((ocxocount - lastocxo)>>1);		// moving avg
+		gpsstep = (gpscount>>1) + ((gpscount - lastgps)>>1);
+
+		lastocxo = ocxocount;
+		lastgps = gpscount;
+	}
+}
+
+
+
 long int getreading(unsigned int adac, unsigned int bdac, unsigned long timeout)
 {
 	volatile int64_t now, targettime;
@@ -541,3 +743,39 @@ void testocxo()
 	err = getreading(2574,4095,5000L);
 	printf("Test DAC=%i, ocxo=%08lu, gps=%08lu diff=%ld \n\r",0xfff,ocxocount,gpscount,err);
 }
+
+void testglitch()
+{
+
+	findglitch(2820, 2820,1000L);
+}
+
+#if 0
+// test the counters
+void testcounters()
+{
+	unsigned int adcval;
+	int lasterr, err;
+	adcval = 2580;		// a good starting point
+	lasterr = err = 0;
+	ocxointerval = 10000L;
+	resetcnt();
+	for(;;)
+	{
+		resetcnt();
+		delay_ms((unsigned int)ocxointerval);
+		ocxocount = read32cnt(0);
+		gpscount = read32cnt(1);
+		err = gpscount-ocxocount;
+		printf("ocxo=%08lu, gps=%08lu diff=%d\n\r",ocxocount,gpscount,err);
+		ladder();
+		//	if (lasterr != err)
+		{
+			adcval = adcval+err;
+			spiwrite16(0x1000 | adcval);    // adjust voltage into tcxo control
+			printf("dac=%d\n\r",adcval);
+			lasterr = err;
+		}
+	}
+}
+#endif

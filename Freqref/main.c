@@ -40,17 +40,18 @@ int main(void)
 	{
 		printf("dds frequency not found\n\r");
 	}
-
+	setdacandwait(REFVAL,REFVAL);		// eventually refval will be from EEPROM
 	settimer3(200/4);
+
 	while(1)
-	{//
-//setdacandwait(0);
+	{
 //setdacandwait(4095);
 //debugdac();
 //		pid();
 //		propocxo(); // proxess the ocxo tracking
 		track3ocxo(); // proxess the ocxo tracking
 //		testocxo();
+//		testglitch();
 		ladder();  	// main loop to process all the modules
 	}
 

@@ -229,7 +229,7 @@ void lcdpageevent(bool timed)
 {
 	lcdpevent = 0;		// inactive
 	bool trig;
-	static uint8_t gps = 55 , warmup = 55, unlock = 55;
+	static uint8_t gps = 55, unlock = 55;
 
 	//	printf("lcdpage: page %d\n\r",pagenum);
 
@@ -244,12 +244,17 @@ void lcdpageevent(bool timed)
 			setlcdnum("top.t1.bco",(gps) ? NEX_TBLACK : NEX_TRED);
 		}
 
-		trig = (m1sectimer > (10L*60L*1000L));
-		if (trig != warmup)
+		if ((msectime() + hotstarttime) < (WARMINGTIME/2*60L*1000L))
 		{
-			warmup = trig;
-			setlcdnum("top.t2.bco",(warmup) ? NEX_TBLACK : NEX_TYELLOW);
+			setlcdnum("top.t2.bco",NEX_TRED);
 		}
+		else
+		if ((msectime() + hotstarttime) < ((WARMINGTIME)*60L*1000L))
+		{
+			setlcdnum("top.t2.bco",NEX_TYELLOW);
+		}
+		else
+			setlcdnum("top.t2.bco",NEX_TBLACK);
 
 		trig = ocxounlock;
 		if (trig != unlock)

@@ -91,8 +91,9 @@ static struct /*UbxGps*/ {
 
 	// Function, printing packet to the PC's serial in hexadecimal form
 	void printPacket(byte *packet, byte len) {
-		char temp[3];
 #if 0
+		char temp[3];
+
 		for (byte i = 0; i < len; i++) {
 			if(i%16==0)
 			{
