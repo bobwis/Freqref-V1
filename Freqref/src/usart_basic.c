@@ -91,6 +91,7 @@ ISR(USART0_UDRE_vect)
 		USART_0_tx_tail = tmptail;
 		/* Start transmission */
 		UDR0 = USART_0_txbuf[tmptail];
+		;
 		USART_0_tx_elements--;
 	}
 
@@ -247,8 +248,6 @@ ISR(USART1_RX_vect)
 	/* Store received data in buffer */
 	USART_1_rxbuf[tmphead] = data;
 	USART_1_rx_elements++;
-
-	
 }
 
 /* Interrupt service routine for Data Register Empty */
@@ -264,6 +263,7 @@ ISR(USART1_UDRE_vect)
 		USART_1_tx_tail = tmptail;
 		/* Start transmission */
 		UDR1 = USART_1_txbuf[tmptail];
+		;
 		USART_1_tx_elements--;
 	}
 
@@ -435,6 +435,7 @@ ISR(USART2_UDRE_vect)
 		USART_2_tx_tail = tmptail;
 		/* Start transmission */
 		UDR2 = USART_2_txbuf[tmptail];
+		;
 		USART_2_tx_elements--;
 	}
 
@@ -627,6 +628,7 @@ ISR(USART3_UDRE_vect)
 		USART_3_tx_tail = tmptail;
 		/* Start transmission */
 		UDR3 = USART_3_txbuf[tmptail];
+		;
 		USART_3_tx_elements--;
 	}
 

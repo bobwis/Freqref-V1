@@ -54,6 +54,12 @@
 #include "driver_init.h"
 #include <system.h>
 
+/* configure pins and initialize registers */
+void I2C_0_initialization(void)
+{
+	I2C_0_init();
+}
+
 /* configure the pins and initialize the registers */
 void SPI_0_initialization(void)
 {
@@ -432,6 +438,8 @@ void system_init()
 	sysctrl_init();
 
 	FLASH_0_init();
+
+	I2C_0_initialization();
 
 	SPI_0_initialization();
 
