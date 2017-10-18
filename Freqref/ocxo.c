@@ -194,15 +194,15 @@ void capturecnt()
 
 // clear the counters
 // scale is the A DAC step multiplier currently in use
-void resetcnt(int scale)
+void resetcnt(int currscale)
 // 0x40 is /CCLR
 // 0x80 is RCLK
 {
-	scale = 3 - scale;		// we want the low scales to have bigger delay
-	if (scale <= 0)			// to try to prevent premature counter noise being accepted
-		scale = 1;
-	if (scale < 3)
-		scale <<= 2;			// so scale of 1 will now give us 8. 2 will give 4
+	currscale = 3 - currscale;		// we want the low scales to have bigger delay
+	if (currscale <= 0)			// to try to prevent premature counter noise being accepted
+		currscale = 1;
+	if (currscale < 3)
+		currscale <<= 2;			// so scale of 1 will now give us 8. 2 will give 4
 
 	for(;;)
 	{
@@ -223,7 +223,7 @@ void resetcnt(int scale)
 		{
 			//			printf("ResetCNT retried DAC=%i, ocxo=%08lu, gps=%08lu\n\r",dacval,ocxocount,gpscount);
 		}
-		dlyandladder((scale*3000)/CHUNKTIME);		// wait for gps counters to cover some time to help reduce sequence count noise
+		dlyandladder((currscale*6000)/CHUNKTIME);		// wait for gps counters to cover some time to help reduce sequence count noise
 	}
 }
 
@@ -563,8 +563,8 @@ void track3ocxo()
 
 	case 1:		// ocxo settling then reset counters
 		dlyandladder(1);
-		if (scale != 1)
-//			resetcnt(scale);
+//		if (scale != 1)			// this tweak *should* work when response is improved
+			resetcnt(scale);	// currently it oscillates around the optimum point
 		state = 0;
 		break;
 
@@ -622,7 +622,7 @@ void track3ocxo()
 			i++;
 		}
 
-		if ((lastscaleidx > (i)) && (lastscaleidx > (SCALESTEPS-3)) && (err < 2))			// last sample time was longer than this
+		if ((lastscaleidx > (i)) && (lastscaleidx > (SCALESTEPS-3)) && (err <= 2))			// last sample time was longer than this
 		{
 			scale = samscale[lastscaleidx][1];	// keep old one
 		}
