@@ -14,6 +14,7 @@
 #include "timeutils.h"
 #include "nextion.h"
 
+#define DIMTIME 60000
 
 char currentpage[16] = {""};	
 volatile uint8_t pagenum = 0;		// binary LCD page number 
@@ -22,6 +23,7 @@ unsigned char lcdrxbuffer[32] = {""};
 volatile uint8_t lcdstatus = 0;		// response code, set to 0xff for not set
 volatile uint8_t lcdtouched = 0;		// this gets set to 0xff when an autonomous event or cmd reply happens
 volatile uint8_t lcdpevent = 0;		// lcd reported a page. set to 0xff for new report
+unsigned int dimtimer = DIMTIME;	// lcd dim imer
 
 // send a string to the LCD (len max 255)
 void writelcd(char *str)
@@ -216,6 +218,9 @@ int isnexpkt(unsigned char buffer[],uint8_t size)
 // **** NOTE ****  This is called from within Timer 4 Interrupt Service Routine every 4.096mS
 extern void processnex(void)
 {
+	if (dimtimer)		// lcd auto dim
+		dimtimer--;
+
 	while (USART_2_is_rx_ready())		// data in the rx buffer
 	{
 		if(isnexpkt(lcdrxbuffer,sizeof(lcdrxbuffer)) == -1)
@@ -235,6 +240,7 @@ extern void processnex(void)
 			{
 				if (lcdrxbuffer[0] == NEX_ETOUCH)
 				{
+					dimtimer = DIMTIME;
 					lcdtouched = 0xff;		// its a touch
 					lcdpevent = 0;
 				}

@@ -8,6 +8,8 @@
  #include <stdio.h>
  #include "genpid.h"
 
+#if 0
+
  float scalevalue(float value, float valuemin, float valuemax, float scalemin, float scalemax )
  {
  	//printf("SCALEVALUE %f, %f , %f\n\r", value, valuemin, valuemax);
@@ -76,3 +78,4 @@
 	printf("STARTING -%f, %f , %f, %f, %f, %f, %f\n\r", pv,sp,ratio, integral, derivative,output,outReal);
 	return outReal;
  }
+ #endif

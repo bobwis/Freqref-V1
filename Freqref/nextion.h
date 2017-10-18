@@ -14,6 +14,7 @@ volatile extern uint8_t lcdtouched;
 extern unsigned char lcdrxbuffer[32];
 volatile extern uint8_t lcdpevent;		// lcd reported a page. set to 0xff for new report
 volatile extern uint8_t pagenum;		// binary LCD page number 
+unsigned int dimtimer;
 
 // try to get one packet from the LCD
 extern void decodelcd(void);

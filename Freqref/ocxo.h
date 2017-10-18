@@ -14,20 +14,20 @@
 #define low false
 #define high true
 
-#define REFVAL 1000 // 2818  // 2820	// DAC approx 10MHz reference level (EEPROM eventually)
+#define REFVAL (2820-80)  // DAC approx 10MHz reference level (EEPROM eventually)
 #define MAXCNT 420000	// close to 2^32, the size of the 32 bit ocxo and gps counters
 #define WARMINGTIME 18	// arbitary warm up time allowance
 
 extern unsigned long ocxocount, gpscount, ocxointerval;
 extern unsigned int dacval;
-extern bool ocxounlock;
+extern uint8_t ocxounlock;
 extern unsigned long hotstarttime;
 
 // init 
 bool ocxoinit(void);
 
 // reset frequency counters
-void resetcnt(void);
+void resetcnt(int);
 
 // proportional control
 void propocxo();

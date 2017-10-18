@@ -228,16 +228,17 @@ void lcdtouch()
 void lcdpageevent(bool timed)
 {
 	lcdpevent = 0;		// inactive
-	bool trig;
-	static uint8_t gps = 55, unlock = 55;
+	bool trig, attention = true;;
+	static uint8_t gps = 55;
 
 	//	printf("lcdpage: page %d\n\r",pagenum);
 
 	switch(pagenum)
 	{
-		case 0:		// Top screen
+	case 0:		// Top screen
 		displayclock();
 		trig = (NavPvt.flags & 1);	// GPS Fix flag
+		attention = !(trig);
 		if (gps != trig)
 		{
 			gps = trig;
@@ -247,49 +248,65 @@ void lcdpageevent(bool timed)
 		if ((msectime() + hotstarttime) < (WARMINGTIME/2*60L*1000L))
 		{
 			setlcdnum("top.t2.bco",NEX_TRED);
+			attention |= true;
 		}
 		else
-		if ((msectime() + hotstarttime) < ((WARMINGTIME)*60L*1000L))
 		{
-			setlcdnum("top.t2.bco",NEX_TYELLOW);
+			if ((msectime() + hotstarttime) < ((WARMINGTIME)*60L*1000L))
+			{
+				setlcdnum("top.t2.bco",NEX_TYELLOW);
+				attention |= true;
+			}
+			else
+				setlcdnum("top.t2.bco",NEX_TBLACK);
 		}
-		else
-			setlcdnum("top.t2.bco",NEX_TBLACK);
-
-		trig = ocxounlock;
-		if (trig != unlock)
+		if (ocxounlock == 2)
+		{						// ocxo status
+				setlcdnum("top.t3.bco",NEX_TRED);
+				attention |= true;
+		}
+		else 
 		{
-			trig = unlock;
-			setlcdnum("top.t3.bco",(!(ocxounlock)) ? NEX_TBLACK : NEX_TRED);
+			if (ocxounlock == 1)
+			{
+				setlcdnum("top.t3.bco",NEX_TYELLOW);
+				attention = true;
+			}
+			else
+				setlcdnum("top.t3.bco",NEX_TBLACK);
 		}
-
+		if (attention)
+		{
+			if (dimtimer < (5000/4))
+				dimtimer = (5000/4);		// about 5 seconds		
+		}
 		break;
 
-		case 1:		// GPS screen
+	case 1:		// GPS screen
 		drawgps();
 		break;
 
-		case 2:		// OCXO screen
+	case 2:		// OCXO screen
 		drawocxo();
 		break;
 
-		case 3:		// DDS top menu
+	case 3:		// DDS top menu
 		drawddstop();
 		break;
 
-		case 4:		// DDS keypad
+	case 4:		// DDS keypad
 		ddskeypad();
 		break;
 
-		case 5:		// DDS up/down screen
+	case 5:		// DDS up/down screen
 		getddsfreq();
 		break;
 
-		case 6:		// debug screen
+	case 6:		// debug screen
 		drawdebug();
 		break;
 
-		default:
+	default:
 		printf("invalid lcd page sent\n\r");
 		break;
 
@@ -301,6 +318,25 @@ void lcdpageevent(bool timed)
 // User input and display output
 void ladder(void)
 {
+static int dimlevel = -1;
+
+	if (dimtimer)
+	{
+		if (dimlevel != 99)
+		{
+			writelcdcmd("dim=99");
+			dimlevel = 99;
+		}
+	}
+	else
+	{
+		if (dimlevel != 20)
+		{
+			writelcdcmd("dim=20");
+			dimlevel = 20;
+		}
+	}
+
 	if (lcdtouched == 0xff)		// a touch event to deal with
 	{
 		lcdtouch();
