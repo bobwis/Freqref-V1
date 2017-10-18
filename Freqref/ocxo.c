@@ -563,7 +563,7 @@ void track3ocxo()
 
 	case 1:		// ocxo settling then reset counters
 		dlyandladder(1);
-		if (scale != 1)
+//		if (scale != 1)
 //			resetcnt(scale);
 		state = 0;
 		break;
