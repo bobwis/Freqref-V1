@@ -67,8 +67,7 @@ void SPI_0_init()
 	       | 1 << MSTR                  /* Master/Slave select: enabled */
 	       | 0 << CPOL                  /* Clock polarity: disabled */
 	       | 0 << CPHA                  /* Clock phase: disabled */
-//	       | (0 << SPR1) | (1 << SPR0); /* SPI Clock rate selection: fosc/64 */
-	       | (0 << SPR1) | (0 << SPR0); /* SPI Clock rate selection: fosc/4 */
+	       | (0 << SPR1) | (1 << SPR0); /* SPI Clock rate selection: fosc/64 */
 
 	// SPSR = (0 << SPI2X); /* Disable double SPI speed */
 
@@ -78,7 +77,7 @@ void SPI_0_init()
 
 void SPI_0_enable()
 {
-	SPCR |= (1 << SPE) | (1 << SPIE);		// SPIE added by bob
+	SPCR |= (1 << SPE);
 }
 
 void SPI_0_disable()

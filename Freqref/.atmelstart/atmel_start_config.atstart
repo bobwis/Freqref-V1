@@ -68,6 +68,20 @@ drivers:
     variant: null
     clocks:
       domain_group: null
+  I2C_0:
+    user_label: I2C_0
+    definition: Atmel:ATMega640_1280_2560_drivers:1.0.0::ATmega2560-16AU::TWI::driver_config_definition::Interrupt::Drivers:I2C:Master
+    functionality: I2C
+    api: Drivers:I2C:Master
+    configuration:
+      twi_bit_rate: 100000
+      twi_twcr_twea: false
+      twi_twcr_twen: true
+      twi_twcr_twie: false
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group: null
   SPI_0:
     user_label: SPI_0
     definition: Atmel:ATMega640_1280_2560_drivers:1.0.0::ATmega2560-16AU::SPI::driver_config_definition::SPI.Master.Interrupt::Drivers:SPI:Basic

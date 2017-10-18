@@ -43,13 +43,13 @@ int main(void)
 	settimer3(200/4);
 	while(1)
 	{
-//setdacandwait(4095);
-//debugdac();
-//		pid();
-//		propocxo(); // proxess the ocxo tracking
+		//setdacandwait(4095);
+		//debugdac();
+		//		pid();
+		//		propocxo(); // proxess the ocxo tracking
 		track3ocxo(); // proxess the ocxo tracking
-//		testocxo();
-//		testglitch();
+		//		testocxo();
+		//		testglitch();
 		ladder();  	// main loop to process all the modules
 	}
 
