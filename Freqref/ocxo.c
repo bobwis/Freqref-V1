@@ -63,7 +63,7 @@ unsigned char swapend(unsigned char n)
 // wait for next sample in chunks of 1/3 sec
 // keep ladder alive
 #define CHUNKTIME 333
-void dlyandladder(int chunk)
+void dlyandladder(unsigned int chunk)
 {
 	while (chunk)
 	{
@@ -194,10 +194,13 @@ void capturecnt()
 
 // clear the counters
 // scale is the A DAC step multiplier currently in use
-void resetcnt(int currscale)
 // 0x40 is /CCLR
 // 0x80 is RCLK
+void resetcnt(int scale)
 {
+	long currscale;
+	
+	currscale = scale;
 	currscale = 3 - currscale;		// we want the low scales to have bigger delay
 	if (currscale <= 0)			// to try to prevent premature counter noise being accepted
 		currscale = 1;
@@ -223,7 +226,7 @@ void resetcnt(int currscale)
 		{
 			//			printf("ResetCNT retried DAC=%i, ocxo=%08lu, gps=%08lu\n\r",dacval,ocxocount,gpscount);
 		}
-		dlyandladder((currscale*6000)/CHUNKTIME);		// wait for gps counters to cover some time to help reduce sequence count noise
+		dlyandladder((unsigned int)((currscale*6000L)/CHUNKTIME));		// wait for gps counters to cover some time to help reduce sequence count noise
 	}
 }
 
