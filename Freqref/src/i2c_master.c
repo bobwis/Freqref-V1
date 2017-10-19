@@ -160,8 +160,8 @@ void I2C_0_init()
 	PRR0 &= ~(1 << PRTWI);
 
 	TWCR = (1 << TWEN)   /* TWI: enabled */
-	       | (0 << TWIE) /* TWI Interrupt: disabled */
-	       | (0 << TWEA) /* TWI Acknowledge: disabled */;
+	       | (1 << TWIE) /* TWI Interrupt: disabled */
+	       | (1 << TWEA) /* TWI Acknowledge: disabled */;
 
 	/* SCL bitrate = F_CPU / (16 + 2 * TWBR * TWPS value) */
 	/* Configured bit rate is 100.000kHz, based on CPU frequency 8.000MHz */

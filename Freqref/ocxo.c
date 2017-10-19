@@ -563,13 +563,8 @@ void track3ocxo()
 
 	case 1:		// ocxo settling then reset counters
 		dlyandladder(1);
-<<<<<<< HEAD
 //		if (scale != 1)			// this tweak *should* work when response is improved
 			resetcnt(scale);	// currently it oscillates around the optimum point
-=======
-//		if (scale != 1)
-//			resetcnt(scale);
->>>>>>> ada310548edf0cf33651b7d1201fb0d19a6bf2b3
 		state = 0;
 		break;
 
