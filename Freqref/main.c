@@ -41,8 +41,8 @@ int main(void)
 		printf("dds frequency not found\n\r");
 	}
 
-		siswiz();
-//		si5351aSetFrequency(90000000L);
+//		siswiz();
+		si5351aSetFrequency(40000000L);
 
 	settimer3(200/4);
 	while(1)

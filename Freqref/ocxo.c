@@ -679,11 +679,16 @@ void track3ocxo()
 	case 5:			// B dac fine adjustment
 		if (err != 0)		// err = -3 to + 3
 		{
-			bdac = dacval + err * 333;		// range -500 to +500 with -4 to +4 input
+//			bdac = dacval + err * 333;		// range -500 to +500 with -4 to +4 input
+			bdac = dacval + (err * 500);		// range 
 			bdac = (bdac + oldbdac) / 2;	// average with last times
+			if (bdac < 0)
+				bdac = 0;
+			if (bdac > 4095)
+				bdac = 4095;
+			printf("Fine: uptime=%3lu Sec, count=%d ocxo=%08lu gps=%08lu ADAC=%d BDAC=%d scale=%u, err=%ld \n\r",(unsigned long)msectime()/1000L,resetbackoff,ocxocount,gpscount,dacval,bdac,scale,err);
 			if (oldbdac != bdac)
 			{
-				printf("Fine: count=%d, ADAC=%d BDAC=%d scale=%u, err=%ld \n\r",resetbackoff,dacval,bdac,scale,err);
 				spiwrite16(0x9000 | bdac);    // ch B
 				oldbdac = bdac;
 			}
