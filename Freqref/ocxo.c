@@ -23,7 +23,7 @@
 // Set so ChA is full range, 2047 gives bout 2.012 Volts on the TCXO, ie 100 = 0.1V step
 // ChB full 0-4095 range is about + or - 0.002V against the ChA output (not used)
 
-unsigned long ocxocount, gpscount, ocxointerval;
+unsigned long ocxocount = 0L, gpscount = 0L, ocxointerval = 5000L;
 unsigned int dacval = REFVAL;
 uint8_t ocxounlock = 2;
 unsigned long warmupmins = 0;
@@ -63,7 +63,7 @@ unsigned char swapend(unsigned char n)
 // wait for next sample in chunks of 1/3 sec
 // keep ladder alive
 #define CHUNKTIME 333
-void dlyandladder(unsigned int chunk)
+void dlyandladder(volatile unsigned int chunk)
 {
 	while (chunk)
 	{
@@ -149,7 +149,7 @@ bool ocxoinit()
 	//	debugdac();
 	setdacandwait(REFVAL,REFVAL);		// eventually refval will be from EEPROM
 	ocxointerval = 1024L;		// milli-seconds
-	resetcnt(1);
+	resetcnt(5);
 	ocxounlock = 2;
 	return(true);
 }
@@ -196,17 +196,15 @@ void capturecnt()
 // scale is the A DAC step multiplier currently in use
 // 0x40 is /CCLR
 // 0x80 is RCLK
-void resetcnt(int scale)
+void resetcnt(volatile int scale)
 {
-	long currscale;
+	volatile long currscale;
 	
-	currscale = scale;
-	currscale = 3 - currscale;		// we want the low scales to have bigger delay
-	if (currscale <= 0)			// to try to prevent premature counter noise being accepted
-		currscale = 1;
-	if (currscale < 3)
+	currscale = 3 - scale;		// we want the low scales to have bigger delay
+	if (currscale > 0)			// to try to prevent premature counter noise being accepted
 		currscale <<= 2;			// so scale of 1 will now give us 8. 2 will give 4
-
+	else
+		currscale = 1;			// we dont need a long delay after reset to reduce counter noise
 	for(;;)
 	{
 		CNT_CLR_set_level(high);		// ensure clr is inactive
@@ -215,18 +213,23 @@ void resetcnt(int scale)
 		__delay_cycles(25);
 		CNT_CLR_set_level(high);		// re-arm the clear
 
+		printf("ResetCNT uptime=%3lu DAC=%i ocxo=%08lu gps=%08lu currscale=%ld\n\r",
+			(unsigned long)msectime()/1000L,dacval,ocxocount,gpscount,currscale);
+
 		capturecnt();		// freeze the early count
 		ocxocount = read32cnt(0);
 		gpscount = read32cnt(1);
-		if (gpscount == ocxocount)		// if they dont start out the same have another go
+
+		if (gpscount != ocxocount)		// if they dont start out the same have another go
 		{
-			break;
+			continue;
+			printf("ResetCNT ****************** retried\n\r");
 		}
-		else
-		{
-			//			printf("ResetCNT retried DAC=%i, ocxo=%08lu, gps=%08lu\n\r",dacval,ocxocount,gpscount);
-		}
-		dlyandladder((unsigned int)((currscale*6000L)/CHUNKTIME));		// wait for gps counters to cover some time to help reduce sequence count noise
+		currscale = (unsigned int)((currscale*6000L)/CHUNKTIME);
+		currscale++;
+		currscale--;
+		dlyandladder((unsigned int)currscale);		// wait for gps counters to cover some time to help reduce sequence count noise
+		break;
 	}
 }
 

@@ -142,7 +142,7 @@ void siswiz(void)
 {
 	int i;
 	uint8_t const conf[61][2] =
-#if 0
+#if 1
 	{
 	{ 0x0002, 0x53 },
 	{ 0x0003, 0x00 },
@@ -206,7 +206,7 @@ void siswiz(void)
 	{ 0x00A4, 0x00 },
 	{ 0x00B7, 0x12 },
 	};
-#endif
+#else
 {
 	{ 0x0002, 0x53 },
 	{ 0x0003, 0x00 },
@@ -254,6 +254,7 @@ void siswiz(void)
 	{ 0x00A4, 0x00 },
 	{ 0x00B7, 0x92 },
 };
+#endif
 
 	for (i=0; i<61; i++)
 	{
