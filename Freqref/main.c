@@ -7,7 +7,7 @@
 #include "dds.h"
 #include "ocxo.h"
 #include "pid.h"
-
+#include "ad9910.h"
 
 int main(void)
 {
@@ -42,7 +42,15 @@ int main(void)
 	}
 
 //		siswiz();
-		si5351aSetFrequency(40000000L);
+//		si5351aSetFrequency(40000000L);
+	
+
+while(1) {
+
+		AD9910_init();
+		delay_ms(3000);
+//        AD9910_single_tone(0x3FFF, 0, 100000000L, 0);
+		}
 
 	settimer3(200/4);
 	while(1)

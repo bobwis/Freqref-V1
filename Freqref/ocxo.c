@@ -115,21 +115,22 @@ void debugdac()
 	int cha;
 	do
 	{
-		cha = 0x1000 | 2000;	// 50 %
-		spiwrite16(cha);    // chan A
+		//cha = 0x1000 | 4095;	// 50 %
+		//spiwrite16(cha);    // chan A
 
 		i = 0;
 		for (;;)
 		{
 			LED_toggle_level();
-
+			spiwrite16(0x1000 | 0x0234 /* i */);    // analog into tcxo
 			if (i == 0)
-			i = 4095;
+				i = 4095;
 			else
-			i = 0;
-			printf("DAC %d\n\r",i);
-			spiwrite16(0x8000 | 0x1000 | i);    // analog into tcxo
-			delay_ms(5000/4);
+				i = 0;
+//			printf("DAC %d\n\r",i);
+//			spiwrite16(0x1000 | i);    // analog into tcxo
+//			spiwrite16(0x8000 | 0x1000 | i);    // analog into tcxo
+			delay_ms(3500/4);
 		}
 	} while (1);
 }

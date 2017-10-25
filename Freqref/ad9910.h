@@ -220,9 +220,7 @@ extern uint32_t dds_singletone_freq;	//preset default value(Brian add)
 extern uint16_t dds_digr_duty;			//preset default value(Brian add)
 extern uint32_t dds_digr_freq;			//preset default value(Brian add)
 
-#endif
-
-
-
+#define low false
+#define high true
 
 #endif /* AD9910_H_ */

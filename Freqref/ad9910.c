@@ -8,12 +8,11 @@
  * Created: 24/10/2017 1:06:15 PM
  *  Author: bob
  */ 
- 
- #include "hmi_gpio.h"
-#include "hmi_spi.h"
+#include <spi_basic.h>
+#include <stdio.h>
+#include "timeutils.h"
 #include "ad9910.h"
 #include "math.h"
-#include "timer.h"
 
 uint16_t dds_singletone_amp  = 16383;	//preset maximum output amplitude(14b DAC)
 uint32_t dds_singletone_freq = 1000;	//preset frequency 1000Hz
@@ -29,15 +28,18 @@ uint8_t spiRxBuf[SPI1_RX_BUF_SIZ]={0};
 //Function : AD9910_Reset
 //Description : N/a
 //Arguments: N/a
+// currently no reset line implemented in freqref
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void AD9910_reset(void)
 {
+#if 0
 	AD9910_MRST_L;
-	TIM3_delay(1);	//delay 1ms
+	 delay_ms(1);	//delay 1ms
 	AD9910_MRST_H;
-	TIM3_delay(1);	//delay 1ms
+	 delay_ms(1);	//delay 1ms
 	AD9910_MRST_L;
-	TIM3_delay(1);	//delay 1ms
+	 delay_ms(1);	//delay 1ms
+#endif
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -49,8 +51,9 @@ void AD9910_init(void)
 {
 	//AD9910 configuration
 	AD9910_reset();
-	AD9910_nCS_H;											//de-select AD9910, disable SPI transmission
-	AD9910_IO_RESET_L;										//ready for SPI communication
+	CS_DDS_set_level(high);								//de-select AD9910, disable SPI transmission
+//	CS_DDS_set_level(low);
+									//ready for SPI communication
 	//profile 0 selected
 	AD9910_SET_PROFILE(0);									//profile 0 has been selected
 	
@@ -70,7 +73,7 @@ void AD9910_init(void)
 	//---read back register---
 	//AD9910_CFR1_config(bREAD);
 	//AD9910_CFR2_config(bREAD);
-	//AD9910_CFR3_config(0, 0, bREAD);
+	AD9910_CFR3_config(0, 0, bREAD);			// zzz 
 	//AD9910_AuxDAC_config(0, bREAD);
 	//AD9910_FTW_config(0, bREAD);
 	//AD9910_POW_config(0, bREAD);
@@ -91,7 +94,7 @@ void AD9910_single_tone(uint16_t amplitude, uint16_t phase_offset, uint32_t freq
 {
 	if(amplitude > 0x3FFF) return;									//amplitude must less than 0x3FFF(14-bit DAC)
 	if(phase_offset > 0xFFFF) return;								//phase shift(16bit wide)
-	if(frequency > 100000000) return;								//frequency must less than 100MHz
+	if(frequency > 200000000) return;								//frequency must less than 100MHz
 	
 	double ftw_word;
 	double freq_ratio;
@@ -642,24 +645,45 @@ void AD9910_DIGR_RATE(uint16_t pos_rate, uint16_t neg_rate, uint8_t bReadWrite)
 void AD9910_ReadWrite_REG(REG_TypeDef *reg, uint8_t *spiRxData ,uint8_t length)
 {
 	uint8_t i;
+	volatile uint8_t block[64];
 	uint8_t *pReg = (uint8_t*)reg;
-	AD9910_IO_RESET_H;		//abort previous communication
-	TIM3_delay(1);		//delay 1ms
-	AD9910_IO_RESET_L;		//the next byte is instruction byte
-	TIM3_delay(1);		//delay 1ms
-	AD9910_nCS_L;			//select AD9910, SPI transmission start
-	TIM3_delay(1);		//delay 1ms
+
+//	printf("Write_REG: len=%d ",(unsigned int)length);
+	for (i=0; i<length; i++) {
+//		printf("0x%02x ",pReg[i]);
+		block[i] = pReg[i];
+		}
+//	printf("\n\r");
+
+	CS_DDS_set_level(high);						//abort previous communication
+	 delay_ms(1);		//delay 1ms
+//	AD9910_IO_RESET_L;		//the next byte is instruction byte
+
+	 delay_ms(1);		//delay 1ms
+	CS_DDS_set_level(low);			//select AD9910, SPI transmission start
+	 delay_ms(1);		//delay 1ms
 	
 	
 	//HAL_SPI_Transmit(AD9910_SPI_HandlerPtr, (uint8_t *)reg, length, AD9910_SPI_TIMEOUT);
 	//HAL_SPI_TransmitReceive(AD9910_SPI_HandlerPtr, (uint8_t *)reg, spiRxData, length, AD9910_SPI_TIMEOUT);
+
+ SPI_0_exchange_block((void *)&block[0], length);
+
+	for (i=0; i<length; i++) {
+		spiRxData[i] = block[i];
+		printf("Read_REG: len=%d ",(unsigned int)length);
+		printf("0x%02x ",block[i]);
+		printf("\n\r");
+		}
+
+#if 0
 	for(i = 0; i < length; i++ )
 	{
 		spiRxData[i] = hmi_spi1_rwbyte(pReg[i]);
 	}
-	
-	TIM3_delay(1);		//delay 1ms
-	AD9910_nCS_H;			//de-select AD9910, SPI transmission end
+#endif
+	 delay_ms(1);		//delay 1ms
+	CS_DDS_set_level(high);					//de-select AD9910, SPI transmission end
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -667,15 +691,20 @@ void AD9910_ReadWrite_REG(REG_TypeDef *reg, uint8_t *spiRxData ,uint8_t length)
 //Description : update buffer to I/O register
 //Arguments: N/a
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// not implemented in freqref
 void AD9910_IO_UPDATE(void)
 {
+#if 0
 	//update IO buffer to register
 	AD9910_IO_UPDATE_L;					//set IO_UPDATE low
-	TIM3_delay(1);					//delay 1ms
+	 delay_ms(1);					//delay 1ms
 	AD9910_IO_UPDATE_H;					//set IO_UPDATE high
-	TIM3_delay(1);					//delay 1ms
+	 delay_ms(1);					//delay 1ms
 	AD9910_IO_UPDATE_L;					//set IO_UPDATE low
-	TIM3_delay(1);					//delay 1ms
+	 delay_ms(1);					//delay 1ms
+#else
+//	printf("AD9910_IO_UPDATE(void) MISSING\n\r");
+#endif
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -683,9 +712,11 @@ void AD9910_IO_UPDATE(void)
 //Description : select profiles
 //Arguments: profile number(0x00~0x07)
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// not implemented in freqref hardware
 
 void AD9910_SET_PROFILE(uint8_t profile)
 {
+#if 0
 	switch(profile)
 	{
 		case(0):
@@ -745,4 +776,5 @@ void AD9910_SET_PROFILE(uint8_t profile)
 			break;
 		}
 	}
+#endif
 }
