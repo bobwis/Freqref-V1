@@ -32,7 +32,7 @@ void resetcnt(int);
 // proportional control
 void propocxo();
 
-void setdacandwait(int,int);
+void setdacandwait(uint16_t,uint16_t);
 
 /*
 Read the 4 bytes = 32 bits out of each counter

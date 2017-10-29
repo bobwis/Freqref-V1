@@ -19,40 +19,30 @@
 void displayclock()
 {
 	unsigned char est;
-	static uint8_t last[6] = {0xff,0xff,0xff,0xff,0xff,0xff};		// last time cache
+	static uint8_t lastsec = 0xff;		// last time cache
 
-	est = (NavPvt.hour + 10) % 24;
-
-	if (last[0] != est/10)		// hour
-	{
-		setndig("top.n1",est/10);
-		last[0] = est/10;
-	}
-	if (last[1] != est/10)		// hour
-	{
-		setndig("top.n2",est%10);
-		last[1] = est%10;
-	}
-	if (last[2] != NavPvt.min/10)		// min
-	{
-		setndig("top.n3",NavPvt.min/10);
-		last[2] = NavPvt.min/10;
-	}
-	if (last[3] != NavPvt.min%10)		// min
-	{
-		setndig("top.n4",NavPvt.min%10);
-		last[3] = NavPvt.min%10;
-	}
-	if (last[4] != NavPvt.sec/10)		// sec
-	{
-		setndig("top.n5",NavPvt.sec/10);
-		last[4] = NavPvt.sec/10;
-	}
-	if (last[5] != NavPvt.sec%10)		// sec
+	if (lastsec != NavPvt.sec)		// sec changed
 	{
 		setndig("top.n6",NavPvt.sec%10);
-		last[5] = NavPvt.sec%10;
+		setndig("top.n5",NavPvt.sec/10);
+		lastsec = NavPvt.sec;
+
+		est = (NavPvt.hour + 10) % 24;		// queensland time
+
+		setndig("top.n1",est/10);
+		setndig("top.n2",est%10);
+		setndig("top.n3",NavPvt.min/10);
+		setndig("top.n4",NavPvt.min%10);
 	}
+}
+
+// single status text line on top lcd
+void displaystatus()
+{
+
+	writelcdcmd("top.t0.txt=\"\"");
+//	writelcdcmd("top.t0.bco=65504");	// yellow
+	writelcdcmd("top.t0.bco=0");	// yellow
 }
 
 // populate the gps screen
@@ -132,13 +122,13 @@ void drawgps()
 // vpoints are signed bytes
 void plotocxo(int8_t vpoint1,int8_t vpoint2)
 {
-uint8_t pt;
-char buffer[32];
+	uint8_t pt;
+	char buffer[32];
 
 	pt = abs(vpoint1);	// this is the ocxo-gps counter error
 	vpoint1 = -vpoint1;	// invert Y
 	if (pt < 12)
-		vpoint1 *= 10;	// scale up
+	vpoint1 *= 10;	// scale up
 	vpoint1 += (160/2);	// mid point
 	sprintf(buffer,"add 11,0,%d",vpoint1);		// plot points on chart
 	writelcdcmd(buffer);
@@ -183,6 +173,7 @@ void drawddstop()
 // populate the dds keypad screen
 void ddskeypad()
 {
+	si5351aSetFrequency(ddsfreq);
 	// setlcdtext("gps.t0.txt","hello world");
 }
 
@@ -197,16 +188,20 @@ void drawdebug()
 void getddsfreq()
 {
 	uint8_t result;
+	uint32_t freq;
 
-	result = getlcdnvar("dds.ddsfreq.val",&ddsfreq);
+	result = getlcdnvar("dds.ddsfreq.val",&freq);
 	if (result == NEX_ENUM)
 	{
-		printf("dds frequency = %lu\n\r",ddsfreq);
+		printf("dds frequency = %lu\n\r",freq*10L);
 	}
 	else
 	{
 		printf("dds frequency not found\n\r");
+		freq = 15000000L;
 	}
+	ddsfreq = freq * 10L;
+	si5351aSetFrequency(ddsfreq);
 }
 
 
@@ -235,8 +230,9 @@ void lcdpageevent(bool timed)
 
 	switch(pagenum)
 	{
-	case 0:		// Top screen
+		case 0:		// Top screen
 		displayclock();
+		displaystatus();
 		trig = (NavPvt.flags & 1);	// GPS Fix flag
 		attention = !(trig);
 		if (gps != trig)
@@ -258,14 +254,14 @@ void lcdpageevent(bool timed)
 				attention |= true;
 			}
 			else
-				setlcdnum("top.t2.bco",NEX_TBLACK);
+			setlcdnum("top.t2.bco",NEX_TBLACK);
 		}
 		if (ocxounlock == 2)
 		{						// ocxo status
-				setlcdnum("top.t3.bco",NEX_TRED);
-				attention |= true;
+			setlcdnum("top.t3.bco",NEX_TRED);
+			attention |= true;
 		}
-		else 
+		else
 		{
 			if (ocxounlock == 1)
 			{
@@ -273,40 +269,40 @@ void lcdpageevent(bool timed)
 				attention = true;
 			}
 			else
-				setlcdnum("top.t3.bco",NEX_TBLACK);
+			setlcdnum("top.t3.bco",NEX_TBLACK);
 		}
 		if (attention)
 		{
 			if (dimtimer < (5000/4))
-				dimtimer = (5000/4);		// about 5 seconds		
+			dimtimer = (5000/4);		// about 5 seconds
 		}
 		break;
 
-	case 1:		// GPS screen
+		case 1:		// GPS screen
 		drawgps();
 		break;
 
-	case 2:		// OCXO screen
+		case 2:		// OCXO screen
 		drawocxo();
 		break;
 
-	case 3:		// DDS top menu
+		case 3:		// DDS top menu
 		drawddstop();
 		break;
 
-	case 4:		// DDS keypad
+		case 4:		// DDS keypad
 		ddskeypad();
 		break;
 
-	case 5:		// DDS up/down screen
+		case 5:		// DDS up/down screen
 		getddsfreq();
 		break;
 
-	case 6:		// debug screen
+		case 6:		// debug screen
 		drawdebug();
 		break;
 
-	default:
+		default:
 		printf("invalid lcd page sent\n\r");
 		break;
 
@@ -318,7 +314,7 @@ void lcdpageevent(bool timed)
 // User input and display output
 void ladder(void)
 {
-static int dimlevel = -1;
+	static int dimlevel = -1;
 
 	if (dimtimer)
 	{

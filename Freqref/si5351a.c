@@ -107,6 +107,13 @@ void si5351aSetFrequency(uint32_t frequency)
 	uint32_t num;
 	uint32_t denom;
 	uint32_t divider;
+	static uint32_t oldfrequency = 0L;
+
+	if (oldfrequency == frequency)
+	{
+		return;
+	}
+	oldfrequency = frequency;
 
 	divider = 900000000 / frequency;// Calculate the division ratio. 900,000,000 is the maximum internal
 	// PLL frequency: 900MHz
@@ -137,6 +144,7 @@ void si5351aSetFrequency(uint32_t frequency)
 	// and set the MultiSynth0 input to be PLL A
 	i2cSendRegister(SI_CLK0_CONTROL, 0x4F | SI_CLK_SRC_PLL_A);
 }
+
 
 void siswiz(void)
 {

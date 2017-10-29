@@ -32,6 +32,7 @@ unsigned long hotstarttime = 0;
 #define SCALESTEPS 10
 // scale factor for sample times
 // sample seconds, multiplier scale
+
 static  unsigned int samscale [SCALESTEPS][2] = {
 	{1, 70},
 	{2, 70},
@@ -63,7 +64,7 @@ unsigned char swapend(unsigned char n)
 // wait for next sample in chunks of 1/3 sec
 // keep ladder alive
 #define CHUNKTIME 333
-void dlyandladder(volatile unsigned int chunk)
+void dlyandladder(unsigned int chunk)
 {
 	while (chunk)
 	{
@@ -93,16 +94,16 @@ void spiwrite16(uint16_t data)
 }
 
 // set the dac to the ocxo and wait a bit for the ocxo to generate the new frequency before returning
-void setdacandwait(int adac, int bdac)
+void setdacandwait(uint16_t adac, uint16_t bdac)
 {
-	int cha, chb;
+	uint16_t cha, chb;
 
 	adac &= 0x0fff;
-	bdac &= 0xffff;
+	bdac &= 0x0fff;
 	cha = 0x1000 | adac;
-	chb = 0x9000 | bdac;
+	chb = 0x1000 | 0x8000 | bdac;
 	spiwrite16(cha);    // chan A
-	//	printf("setdacandwait DAC %d\n\r",i);
+// printf("setdacandwait adac=0x%x bdac=0x%x\n\r",adac,bdac);
 	spiwrite16(chb);    // chan B
 	dlyandladder(1);		// dac=>ocxo output settle
 }
@@ -111,27 +112,25 @@ void setdacandwait(int adac, int bdac)
 //#ifdef DEBUGDAC
 void debugdac()
 {
-	int i;
+	int i= 0;
 	int cha;
+
+	spiwrite16(0x8000 | 0x0000 );    // shutdown dac B
 	do
 	{
-		//cha = 0x1000 | 4095;	// 50 %
-		//spiwrite16(cha);    // chan A
+		while(1)
+			for (i=2100; i<2700; i+=20)
+			{ 
+				if (i > 4095)
+					i = 4095;
+				LED_toggle_level();
 
-		i = 0;
-		for (;;)
-		{
-			LED_toggle_level();
-			spiwrite16(0x1000 | 0x0234 /* i */);    // analog into tcxo
-			if (i == 0)
-				i = 4095;
-			else
-				i = 0;
-//			printf("DAC %d\n\r",i);
+				printf("DAC %d %0x\n\r",i,i);
+//			setdacandwait(i,0);
 //			spiwrite16(0x1000 | i);    // analog into tcxo
-//			spiwrite16(0x8000 | 0x1000 | i);    // analog into tcxo
-			delay_ms(3500/4);
-		}
+				spiwrite16(0x1000 | 0x1000 | i);    // analog into tcxo
+				delay_ms(2000);
+			}
 	} while (1);
 }
 //#endif
@@ -197,10 +196,10 @@ void capturecnt()
 // scale is the A DAC step multiplier currently in use
 // 0x40 is /CCLR
 // 0x80 is RCLK
-void resetcnt(volatile int scale)
+void resetcnt(int scale)
 {
-	volatile long currscale;
-	
+	long currscale;
+
 	currscale = 3 - scale;		// we want the low scales to have bigger delay
 	if (currscale > 0)			// to try to prevent premature counter noise being accepted
 		currscale <<= 2;			// so scale of 1 will now give us 8. 2 will give 4
@@ -214,8 +213,8 @@ void resetcnt(volatile int scale)
 		__delay_cycles(25);
 		CNT_CLR_set_level(high);		// re-arm the clear
 
-		printf("ResetCNT uptime=%3lu DAC=%i ocxo=%08lu gps=%08lu currscale=%ld\n\r",
-			(unsigned long)msectime()/1000L,dacval,ocxocount,gpscount,currscale);
+//		printf("ResetCNT uptime=%3lu DAC=%i ocxo=%08lu gps=%08lu currscale=%ld\n\r",
+//			(unsigned long)msectime()/1000L,dacval,ocxocount,gpscount,currscale);
 
 		capturecnt();		// freeze the early count
 		ocxocount = read32cnt(0);
@@ -223,12 +222,10 @@ void resetcnt(volatile int scale)
 
 		if (gpscount != ocxocount)		// if they dont start out the same have another go
 		{
+//			printf("ResetCNT ****************** retried\n\r");
 			continue;
-			printf("ResetCNT ****************** retried\n\r");
 		}
 		currscale = (unsigned int)((currscale*6000L)/CHUNKTIME);
-		currscale++;
-		currscale--;
 		dlyandladder((unsigned int)currscale);		// wait for gps counters to cover some time to help reduce sequence count noise
 		break;
 	}
@@ -395,8 +392,6 @@ long sample(void)
 	//	printf("returning %ld\n\r",err);
 	return(err);
 }
-
-
 
 
 #if 0
@@ -765,7 +760,7 @@ void findglitch(unsigned int adac, unsigned int bdac, unsigned long timeout)
 
 long int getreading(unsigned int adac, unsigned int bdac, unsigned long timeout)
 {
-	volatile int64_t now, targettime;
+	int64_t now, targettime;
 
 	setdacandwait(adac,bdac);
 

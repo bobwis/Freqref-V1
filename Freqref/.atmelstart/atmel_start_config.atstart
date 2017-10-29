@@ -403,6 +403,13 @@ pads:
     user_label: CS_DDS
     configuration:
       pad_initial_level: High
+  CS_DDS:
+    name: PL7
+    definition: Atmel:ATMega640_1280_2560_drivers:1.0.0::ATmega2560-16AU::pad::PL7
+    mode: Digital output
+    user_label: CS_RST
+    configuration:
+      pad_initial_level: High	  
   PD2:
     name: PD2
     definition: Atmel:ATMega640_1280_2560_drivers:1.0.0::ATmega2560-16AU::pad::PD2

@@ -447,6 +447,19 @@ void system_init()
 	    // <true"> High
 	    true);
 
+	/* PORT setting on PL7 */
+
+	// Set pin direction to output
+	CS_RST_set_dir(PORT_DIR_OUT);
+
+	CS_RST_set_level(
+	// <y> Initial level
+	// <id> pad_initial_level
+	// <false"> Low
+	// <true"> High
+	true);
+
+
 	sysctrl_init();
 
 	FLASH_0_init();

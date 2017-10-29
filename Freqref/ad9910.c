@@ -20,6 +20,7 @@ uint16_t dds_digr_duty = 50;   			//preset duty 50%
 uint32_t dds_digr_freq = 1000; 			//preset frequency1000Hz
 
 
+
 uint8_t spiRxBuf[SPI1_RX_BUF_SIZ]={0};
 //volatile uint32_t ad9910_delay = 0;
 //void HAL_Delay(uint32_t n) { ad9910_delay = n*1000000; while(ad9910_delay > 0) { ad9910_delay--;	} }
@@ -32,14 +33,12 @@ uint8_t spiRxBuf[SPI1_RX_BUF_SIZ]={0};
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void AD9910_reset(void)
 {
-#if 0
-	AD9910_MRST_L;
+	CS_RST_set_level(0);
 	 delay_ms(1);	//delay 1ms
-	AD9910_MRST_H;
-	 delay_ms(1);	//delay 1ms
-	AD9910_MRST_L;
-	 delay_ms(1);	//delay 1ms
-#endif
+	CS_RST_set_level(1);
+	delay_ms(1);	//delay 1ms
+	CS_RST_set_level(0);
+	delay_ms(1);	//delay 1ms
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -51,16 +50,27 @@ void AD9910_init(void)
 {
 	//AD9910 configuration
 	AD9910_reset();
+	delay_ms(2);
 	CS_DDS_set_level(high);								//de-select AD9910, disable SPI transmission
 //	CS_DDS_set_level(low);
-									//ready for SPI communication
+								//ready for SPI communication
 	//profile 0 selected
 	AD9910_SET_PROFILE(0);									//profile 0 has been selected
 	
 	//default value of single tone mode
+
 	AD9910_CFR1_config(DDS_SINE,0,0,bWRITE);				//set CRF1 to single tone and sine wave output
+
+		printf("CFR2 Next: ");
+	delay_ms(5000);
 	AD9910_CFR2_config(bWRITE, DISABLE_DRG);				//disable DRG for single tone output
 	AD9910_CFR3_config(PLL_MULTIPLY, 1, bWRITE);			//fxtal=25MHz, N=40, fsysclk=25MHz*40=1GHz, enable PLL
+
+	while(1) {
+//		AD9910_CFR2_config(1,bREAD);
+		delay_ms(1000);
+		}
+
 	//AD9910_AuxDAC_config(219, bWRITE);					//DAC code=219, Iout=(86.4/10k)*(1+218/96)=28.35mA (=20.07mA/0.707)
 	AD9910_AuxDAC_config(127, bWRITE);						//DAC code=127, Iout=(86.4/10k)*(1+127/96)=20.07mA
 	//AD9910_FTW_config(4295, bWRITE);						//default 1kHz (sysclk=1GHz), ftw=round((1kHz/1GHz)*4294967295)
@@ -73,7 +83,7 @@ void AD9910_init(void)
 	//---read back register---
 	//AD9910_CFR1_config(bREAD);
 	//AD9910_CFR2_config(bREAD);
-	AD9910_CFR3_config(0, 0, bREAD);			// zzz 
+	//AD9910_CFR3_config(0, 0, bREAD);			// zzz 
 	//AD9910_AuxDAC_config(0, bREAD);
 	//AD9910_FTW_config(0, bREAD);
 	//AD9910_POW_config(0, bREAD);
@@ -249,7 +259,7 @@ void AD9910_CFR2_config(uint8_t drg_function, uint8_t bReadWrite)
 	{
 		case DISABLE_DRG:
 		{
-			CFR2_cfg.Data[1] = 0x00 | (READ_FTW << 0) | (SYNCCLK_ENA << 6);	//enable sync clock output & read ftw from DDS phase accumulator
+			CFR2_cfg.Data[1] = 0x00 | (READ_FTW << 0) | (SYNCCLK_ENA << 6) | (ITER_IOUPD << 7);	//enable sync clock output & read ftw from DDS phase accumulator
 			break;
 		}
 		case ENABLE_DRG_TRI:
@@ -261,7 +271,8 @@ void AD9910_CFR2_config(uint8_t drg_function, uint8_t bReadWrite)
 			| (DIGR_ENABLE 	<< 3)						//enable DRG function
 			| (DIGR_DES_BIT0	<< 4)						//set DRG desitination as "amplitude"
 			| (DIGR_DES_BIT1	<< 5)						//set DRG desitination as "amplitude"
-			| (SYNCCLK_ENA 	<< 6);						//enable sync clock output
+			| (SYNCCLK_ENA 	<< 6)						//enable sync clock output
+			| (ITER_IOUPD << 7);						// enable auto I/O update
 			break;
 		}
 		case ENABLE_DRG_SAW_UP:
@@ -281,13 +292,14 @@ void AD9910_CFR2_config(uint8_t drg_function, uint8_t bReadWrite)
 		}
 		default:
 		{
-			CFR2_cfg.Data[1] = (READ_FTW << 0) | (SYNCCLK_ENA << 6);		//enable sync clock output & read ftw from DDS phase accumulator
+			CFR2_cfg.Data[1] = (READ_FTW << 0) | (SYNCCLK_ENA << 6) | (ITER_IOUPD << 7);		//enable sync clock output & read ftw from DDS phase accumulator
 			break;
 		}
 	}
 
 	CFR2_cfg.Data[0] = 1;													//enable amplitude scale set by selected profile
 	CFR2_cfg.DataSize = 5;
+	printf("CFR2 Next: ");
 	AD9910_ReadWrite_REG(&CFR2_cfg, spiRxBuf, CFR2_cfg.DataSize);
 }
 
@@ -648,12 +660,14 @@ void AD9910_ReadWrite_REG(REG_TypeDef *reg, uint8_t *spiRxData ,uint8_t length)
 	volatile uint8_t block[64];
 	uint8_t *pReg = (uint8_t*)reg;
 
-//	printf("Write_REG: len=%d ",(unsigned int)length);
+	sei();
+	delay_ms(5000);
+	printf("Write_REG: len=%d ",(unsigned int)length);
 	for (i=0; i<length; i++) {
-//		printf("0x%02x ",pReg[i]);
+		printf("0x%02x ",pReg[i]);
 		block[i] = pReg[i];
 		}
-//	printf("\n\r");
+	printf("\n\r");
 
 	CS_DDS_set_level(high);						//abort previous communication
 	 delay_ms(1);		//delay 1ms
@@ -669,12 +683,12 @@ void AD9910_ReadWrite_REG(REG_TypeDef *reg, uint8_t *spiRxData ,uint8_t length)
 
  SPI_0_exchange_block((void *)&block[0], length);
 
+ 	printf("Read_REG: len=%d ",(unsigned int)length);
 	for (i=0; i<length; i++) {
 		spiRxData[i] = block[i];
-		printf("Read_REG: len=%d ",(unsigned int)length);
 		printf("0x%02x ",block[i]);
-		printf("\n\r");
 		}
+	printf("\n\r");
 
 #if 0
 	for(i = 0; i < length; i++ )
